@@ -1,0 +1,66 @@
+answers-lab2
+Xiong Weilun, 5120379076
+There is answers for questions in lab2, more details please reference to lab2.pdf in upload package.
+
+Question 1.
+=====================================
+mystery_t x;
+char* value = return_a_pointer();
+*value = 10;
+x = (mystery_t) value;
+=====================================
+All the code above is writing in C language and need to compile, it's kernel runtime code, need to be as logical address, linear address, physical address, all data in kernel runtime use virtual address, it's obvious to regard the type of x is uintptr_t.
+
+
+Question 2.
+Entry   Base Virtual Address    Points to (logically):  
+1023    0xffc0000       page table for top 4MB of phys memory  
+1022    0xff80000       page table for top 4MB~8MB phys memory  
+.................    
+... for alloc ...
+.................
+    0xf0138000             last page of page table 
+......
+......page table
+......
+    0xf0117000             page table
+    0xf0116000             page table directory
+end
+......
+...... kernel
+......
+960 0xf0000000(KERNBASE)   page table for kernel code, same as 0 physical
+959 0xefc00000(KSTACKTOP)  kernel data top  
+958 0xef800000(ULIM)       current page table 
+957 0xef400000(UVPT)       pages space max position
+956 0xef000000(UPAGES)     pages space min position
+955 0xeec00000(UTOP)       User exception stack limit position(high)
+    0xeebff000             User exception stack limit position(low)
+    0xeebfe000(USTACKTOP)  User stack limit position(high)
+    0xeebfd000             User stack limit position(low)
+
+2   0x00800000(UTEXT)      User .text data
+1   0x00400000                 unknow
+    0x00200000(USTABDATA)      unknow
+0   0x00000000(0)          Same as 960 (then turn to NULL)
+
+
+Question 3.
+Because there are confine bits in page table entry, such as PTE_U, PTE_W and PTE_P, and PTE_U can judge if user program can access this page's data.
+
+Question 4.
+As in my uploaded lab2.pdf explain, virtual address from UPAGES to UVPT mapping 'pages', and the space in this range is PTSIZE bytes, one struct Page is 8 byte, and one struct Page can support PGSIZE space, so the total suppoer space is:
+PTSIZE / 8 * PGSIZE = 2147483648 Byte = 2 GB.
+
+
+Question 5.
+In ideal design there is one PGSIZE byte's page table directory and 1024 second level page table to support 4GB physical memory in x86 architecture, and these tables need 4MB space to save, as Question-4 explain.
+But in fact 'npages' is 16639, and only need 17 two level page table to support, so page table directory need 17*4 byte, the sum is:
+17 *4 + 17 * PGSIZE = 69700 Byte = 68.07 KB.
+And those space is not include the costing of 'struct Page*' list and other data structure like 'chunck_list'. 
+
+
+Question 6.
+After 67th line(jmp operation) at kern/entry.S, EIP based on kernbase, because kern/entrypgdir mapping two virtual memory to one physical memory at the same time.
+If not, after setting bits of CR0 and change addressing mode, the next assembly instruction will do error because of "can't find mapping physical address", so entrypgdir mapping two virtual address at same time is necessary.
+(The question is answered in lab1 already ~~0_0~~).

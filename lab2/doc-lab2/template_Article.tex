@@ -1,0 +1,741 @@
+\documentclass[11pt,a4paper]{article} 
+
+%=================宏包=================
+\usepackage{fontspec}
+\usepackage{xltxtra}
+\usepackage{xcolor}
+\usepackage{listings}
+\usepackage[colorlinks,linkcolor=black,anchorcolor=black,citecolor=black]{hyperref}
+\usepackage{cite}
+\usepackage{indentfirst}
+\usepackage{graphicx}
+\usepackage{fancyhdr}
+\usepackage{setspace}
+
+
+
+%=================字体=================
+\setmainfont[BoldFont=黑体]{宋体}
+\setsansfont{宋体} 
+\setmonofont{宋体}
+
+%=================字号=================
+\newcommand{\chuhao}{\fontsize{42pt}{\baselineskip}\selectfont}
+\newcommand{\xiaochuhao}{\fontsize{36pt}{\baselineskip}\selectfont}
+\newcommand{\yihao}{\fontsize{28pt}{\baselineskip}\selectfont}
+\newcommand{\erhao}{\fontsize{21pt}{\baselineskip}\selectfont}
+\newcommand{\xiaoerhao}{\fontsize{18pt}{\baselineskip}\selectfont}
+\newcommand{\sanhao}{\fontsize{15.75pt}{\baselineskip}\selectfont}
+\newcommand{\sihao}{\fontsize{14pt}{\baselineskip}\selectfont}
+\newcommand{\xiaosihao}{\fontsize{12pt}{\baselineskip}\selectfont}
+\newcommand{\wuhao}{\fontsize{10.5pt}{\baselineskip}\selectfont}
+\newcommand{\xiaowuhao}{\fontsize{9pt}{\baselineskip}\selectfont}
+\newcommand{\liuhao}{\fontsize{7.875pt}{\baselineskip}\selectfont}
+\newcommand{\qihao}{\fontsize{5.25pt}{\baselineskip}\selectfont}
+
+%=================section=================
+\makeatletter
+\renewcommand\section{\@startsection{section}{1}{\z@}%
+{-1.5ex \@plus -.5ex \@minus -.2ex}%
+{.5ex \@plus .1ex}%
+{\normalfont\sanhao\fontspec{黑体}}}
+\makeatother
+
+%=================subsection=================
+\makeatletter
+\renewcommand\subsection{\@startsection{subsection}{1}{\z@}%
+{-1.25ex \@plus -.5ex \@minus -.2ex}%
+{.4ex \@plus .1ex}%
+{\normalfont\sihao\fontspec{黑体}}}
+\makeatother
+
+%=================subsubsection=================
+\makeatletter
+\renewcommand\subsubsection{\@startsection{subsubsection}{1}{\z@}%
+{-1ex \@plus -.5ex \@minus -.2ex}%
+{.3ex \@plus .1ex}%
+{\normalfont\xiaosihao\fontspec{黑体}}}
+\makeatother
+
+%=================段落缩进=================
+\makeatletter
+\let\@afterindentfalse\@afterindenttrue
+\@afterindenttrue
+\makeatother
+\setlength{\parindent}{2em}  %中文缩进两个汉字位
+
+
+%=================页面边距=================
+\addtolength{\topmargin}{-54pt}
+\setlength{\oddsidemargin}{0.63cm}  % 3.17cm - 1 inch
+\setlength{\evensidemargin}{\oddsidemargin}
+\setlength{\textwidth}{14.66cm}
+\setlength{\textheight}{24.00cm}    % 24.62
+
+%=================页眉=================
+\pagestyle{fancy}\lhead{JOS-Lab2}\rhead{\fontspec{宋体}熊伟伦，5120379076}
+
+%=================段落=================
+\setlength{\parskip}{0.5\baselineskip}
+\XeTeXlinebreaklocale "zh"                      % 针对中文进行断行
+\XeTeXlinebreakskip = 0pt plus 1pt minus 0.1pt  % 给予TeX断行一定自由度
+\linespread{1.4}                                % 1.4倍行距
+
+%=================代码=================
+\lstset{
+	basicstyle=\linespread{1.0}\small,
+	aboveskip=-10ex,
+	stringstyle=\ttfamily,
+	keywordstyle=\color{blue}\bfseries,
+	commentstyle=\color[RGB]{0,96,96},
+	backgroundcolor=\color[rgb]{0.95,1.0,1.0},
+	numbers=left,
+	frame={trBL},
+	frameround={fttt},
+	xleftmargin=2em,
+	xrightmargin=2em,
+	aboveskip=1em,
+	tabsize=4
+}
+
+
+\begin{document}
+
+\title{\xiaochuhao{JOS-Lab-2 实验报告}}
+\author{\sanhao{熊伟伦}\\\sanhao{5120379076}\\\sanhao{azardf4yy@gmail.com}}
+\date{\sanhao{2014年10月11日 - 10月15日}}
+\maketitle
+\tableofcontents
+\newpage
+
+\section{前言}
+
+该报告描述了我在lab2实验的过程中遇到的问题与解决的方法，介绍了lab2的整体结构。指导中问题的解答参考上传的压缩包中的answers-lab2.txt文件。
+
+\section{概括}
+
+这个实验需要实现kern/pmap.c中的关于内存管理的函数，包括物理页的分配，虚拟内存的管理。所有需要完成的代码均在kern/pmap.c文件中。需要参考inc/x86.h，inc/mmu.h，inc/string.h，inc/queue.h，inc/types.h，inc/memlayout.h，kern/pmap.h中的相关常量，宏，函数。
+
+尤其是inc/mmu.h，kern/pmap.h，分别包含了页表定义的大部分常量，和页表指针，物理地址，虚拟地址的转换函数，宏。
+
+\section{物理页管理}
+
+这一部分根据Exercise的要求，需要实现页表结构在实际物理内存中的管理，所以暂时不需要关注虚拟地址，线性地址。
+
+\subsection{创建页表结构}
+
+与这一部分相关的源代码还有inc/memlayout.h，在其中定义了存储物理页结构的关键数据结构-Page：
+\setmainfont{Consolas}
+\begin{lstlisting}[language={C},firstnumber=164,title=inc/memlayout.h] 
+struct Page {
+	struct Page *pp_link;
+	uint16_t pp_ref;
+};
+\end{lstlisting}
+\setmainfont[BoldFont=黑体]{宋体}
+
+我把注释去掉了。根据注释，这是一个单项链表结构，其中pp\_link指向链表的下一个单元的地址，pp\_ref则表示页表结构中映射到该段物理页的entry数量。
+
+在Lab1中，内核被载入到了0x00010000（1MB）的位置处，程序使用了一个指针end来标记内核数据在内存中最后的位置。因此，我们的物理页表目录和页表存在end标记后按4096byte对齐的位置。
+
+下面的常量是整个页表结构的关键。
+
+\setmainfont{Consolas}
+\begin{lstlisting}[language={C},firstnumber=13,title=kern/pmap.c] 
+// These variables are set by i386_detect_memory()
+size_t npages;		
+static size_t npages_basemem;
+
+// These variables are set in mem_init()
+pde_t *kern_pgdir;	
+struct Page *pages;	
+static struct Page *page_free_list;
+static struct Page chunck_list;
+\end{lstlisting}
+\setmainfont[BoldFont=黑体]{宋体}
+  
+其中npages和npages\_basemem保存的是整个系统能够使用的总页数和其中的基础内存页数。他们通过调用i386\_detect\_memory()函数得到数值，可以把他们看做常量。
+
+根据输出可知npages=16639，npages\_basemem=160，对应的内存空间分别为66556K和640K。两者相减就是扩展内存部分的数值了。
+
+接着看代码，kern\_pgdir保存了页表目录的入口，是虚拟地址，将其减去0xF0000000就是存入cr3的页表目录的物理地址了。pages则是目录索引的页表的入口，page\_free\_list是未分配的页表项的合集，用链表存储，chunck\_list书在连续页表回收的地方用到的。
+
+\setmainfont{Consolas}
+\begin{lstlisting}[language={C},firstnumber=142,title=kern/pmap.c] 
+kern_pgdir = (pde_t *) boot_alloc(PGSIZE);
+memset(kern_pgdir, 0, PGSIZE)
+\end{lstlisting}
+\setmainfont[BoldFont=黑体]{宋体}
+
+可知为kern\_pgdir分配了一个页大小的空间，也就是4096byte，同时进行了初始化，期中memset的第二个参数的格式是int，所以直接传0即可。
+
+接下来实现boot\_alloc()
+\setmainfont{Consolas}
+\begin{lstlisting}[language={C},firstnumber=84,title=kern/pmap.c] 
+static void *
+boot_alloc(uint32_t n)
+{
+	static char *nextfree;
+	char *result;
+	if (!nextfree) {
+		extern char end[];
+		nextfree = ROUNDUP((char *) end, PGSIZE);
+	}
+	nextfree = ROUNDUP(nextfree, PGSIZE);
+	result = KADDR(PADDR(nextfree));
+	if (n > 0) {
+		nextfree += n;
+		// PADDR will check if VA >= KERNBASE 
+		// KADDR will check if PA < npages*PGSIZE
+		KADDR(PADDR(nextfree));
+		nextfree = ROUNDUP(nextfree, PGSIZE);
+	}
+	return result;
+}
+\end{lstlisting}
+\setmainfont[BoldFont=黑体]{宋体}
+
+nextfree是一个全局变量，保存了接下来可以alloc的空间，当然，整个函数只用在物理地址层面上的内存管理。函数会对其到下一个页大小的可用的地址，并将地址返回。需要注意的是注释中需要判断nextfree是否在合法的虚拟地址空间上，在宏PADDR和KADDR中会做该检测，因此第99行就实现了这个检测功能。
+
+回到mem\_init()函数，程序接下来还会alloc页表的空间：
+\setmainfont{Consolas}
+\begin{lstlisting}[language={C},firstnumber=160,title=kern/pmap.c] 
+size_t page_size = sizeof(struct Page);
+pages = boot_alloc(npages*page_size);
+memset(pages, 0, npages*page_size);
+\end{lstlisting}
+\setmainfont[BoldFont=黑体]{宋体}
+
+由于Page包含一个32位的指针和一个uint32\_t变量，所以page\_size变量大小是8，npages前面得知是16639，所以这一次分配了16639*8byte大小的空间，也就是133112byte，也就是32.498个页大小的空间，所以需要33个完整的页。因此整个页表目录和页表总共占用了34个页大小的空间，我们输出进行验证。
+
+得到物理地址，kern\_pgdir=0x0011A000，pages=0x0011B000，下一个可分配的页boot\_alloc(0)=0x0013C000。确实符合我们的计算。
+
+接下来进入page\_init()函数
+
+\subsection{页表结构初始化}
+
+\setmainfont{Consolas}
+\begin{lstlisting}[language={C},firstnumber=249,title=kern/pmap.c] 
+void
+page_init(void)
+{
+	uint32_t i;
+	page_free_list = NULL;
+	for (i = 1; i < npages_basemem; i++) {
+		pages[i].pp_ref = 0;
+		pages[i].pp_link = page_free_list;
+		page_free_list = &pages[i];
+	}
+	for (i = PGNUM(PADDR(boot_alloc(0))); i < npages; i++) {
+		pages[i].pp_ref = 0;
+		pages[i].pp_link = page_free_list;
+		page_free_list = &pages[i];
+	}
+}
+\end{lstlisting}
+\setmainfont[BoldFont=黑体]{宋体}
+
+根据注释，我们将描述整个可用物理内存的页表分隔成两大块加入到page\_free\_list中，第一个循环加载的是0都640K的物理地址空间，即Low Memory。第二个循环加载的是从页表后面开始的可以用空间，直到最大的可用物理内存。
+
+值得注意的是模仿注释中的样例，我们这种写法链表头指向的是物理地址最高的页表，然后依次降低。我输出了第二个循环的开始的i的值，为316，即从第2页到160页，从第317页到最后一页，都是可以分配的页。开头第一页的Boot，中间的VGA显存，扩展ROMs，BIOS，Kernel，页表目录和页表则不能分配。
+
+接下来还有page\_alloc()和page\_free()两个函数需要实现。
+
+\subsection{单个页表分配和释放}
+
+\setmainfont{Consolas}
+\begin{lstlisting}[language={C},firstnumber=298,title=kern/pmap.c] 
+struct Page *
+page_alloc(int alloc_flags)
+{
+	// Fill this function in
+	struct Page* alloc_page = NULL;
+
+	if (page_free_list) {
+		alloc_page = page_free_list;
+		page_free_list = page_free_list->pp_link;
+		alloc_page->pp_link = NULL;
+		// if ALLOC_ZERO flag true, set all empty 
+		if (alloc_flags & ALLOC_ZERO)
+			memset(page2kva(alloc_page), 0, PGSIZE);
+	}
+
+	return alloc_page;
+}
+\end{lstlisting}
+\setmainfont[BoldFont=黑体]{宋体}
+
+page\_alloc()函数的实现十分简单。就是将page\_free\_list链表的第一节从链表中剥离出来，并且将其返回。如果alloc\_flags要求将分配的页清空，就调用memset()函数，该函数通过page2kva()函数根据页表项的指针返回对应的虚拟地址。在前面说过了，memset的第二个参数是int类型，所以0对应了空字符，清空的长度显然就是一个PGSIZE的大小。
+
+\setmainfont{Consolas}
+\begin{lstlisting}[language={C},firstnumber=435,title=kern/pmap.c] 
+void
+page_free(struct Page *pp)
+{
+	// Fill this function in
+	if (pp->pp_ref == 0) {
+		pp->pp_link = page_free_list;
+		page_free_list = pp;
+	}
+}
+\end{lstlisting}
+\setmainfont[BoldFont=黑体]{宋体}
+
+page\_free()函数如上所示，先判断还有没有虚拟页映射到该物理页，如果没有，则将该物理页加入到page\_free\_list的链表头。实现之后check\_alloc()通过。
+
+\subsection{多个页表的分配，释放和重新分配}
+
+对应于Exercise2，需要实现page\_alloc\_npages和page\_free\_npages两个函数。主要是优化大空间分配，不需要多次调用page\_alloc函数。下面是page\_alloc\_npages函数的代码。
+
+\setmainfont{Consolas}
+\begin{lstlisting}[language={C},firstnumber=435,title=kern/pmap.c] 
+struct Page *
+page_alloc_npages(int alloc_flags, int n)
+{
+	// Fill this function
+
+	uint32_t i;
+	uint32_t find_flag = 0;
+	uint32_t alloc_zero_flag = alloc_flags & ALLOC_ZERO;
+	struct Page* find_head = page_free_list;
+	struct Page* ahead_find = NULL;
+	struct Page* t_find; 
+
+	if (n <= 0 || page_free_list == NULL)
+		return NULL;
+
+	// search n cotinuous physical pages
+	while(1) {
+		t_find = find_head;
+		for (i = 0; i < n; i++) {
+			// is physical pages continuous?
+			if ((page2pa(t_find) - page2pa(t_find->pp_link)) 
+				!= PGSIZE)
+				break;
+			t_find = t_find->pp_link;
+			find_flag = (i == n-1);
+		}
+		// if find n continuous physical pages
+		if (find_flag)
+			break;
+		ahead_find = find_head;
+		find_head = find_head->pp_link;
+		// if out of free memory, return NULL
+		if (!find_head)
+			return NULL;
+	}
+
+
+	// ready to alloc
+	t_find = find_head;
+	for (i = 0; i < n; i++) {
+		if (alloc_zero_flag)
+			memset(page2kva(t_find), 0, PGSIZE);
+		if (i != n-1)
+			t_find = t_find->pp_link;
+	}
+
+
+	// remove from page_free_list
+	// if find_head == page_free_list
+	if (ahead_find == NULL)
+		page_free_list = t_find->pp_link;
+	// find_head != page_free_list
+	else
+		ahead_find->pp_link = t_find->pp_link;
+	t_find->pp_link = NULL;
+
+
+	// reverse, for check_continuous(), list order by physical
+	struct Page* next_find = NULL;
+	struct Page* prev_find = NULL;
+	t_find = find_head;
+	while(t_find) {
+		next_find = t_find->pp_link;
+		t_find->pp_link = prev_find;
+		prev_find = t_find;
+		t_find = next_find;
+	}
+	// return alloc list head
+	return prev_find;
+}
+\end{lstlisting}
+\setmainfont[BoldFont=黑体]{宋体}
+
+这个函数较为复杂，首先扫描page\_free\_list，需要找到连续的n个块，要满足这n个块的物理地址连续。我的代码不是十分优化，时间消耗比较大，但为了代码的简单化，满足了功能就好。
+
+接着将这n个页表项从page\_free\_list中剥离出来，需要判断是否是链表头或者是链表中部，然后重新组织page\_free\_list链表。但是根据page\_free函数，只是简单的将页表项加到链表头，所以会出现明明有连续的物理页表项可以分配，但由于它们在链表中不是连续的，所以不会分配，同样是为了代码的简单化，我只是实现了注释中所描述的逻辑。所以这些不合理都无视掉了。
+
+最后，还需要对剥离出来的一段Page链表进行逆转，因为在check\_continuous函数中它判断得到的物理页entry是按链表顺序物理地址逐渐增大的，而在page\_alloc中的样例恰恰相反，因此我们得到的n个entry是按物理地址逐渐递减的，所以需要逆转一下链表。
+
+\setmainfont{Consolas}
+\begin{lstlisting}[language={C},firstnumber=1004,title=kern/pmap.c]
+static int
+check_continuous(struct Page *pp, int num_page)
+{
+	struct Page *tmp; 
+	int i;
+	for( tmp = pp, i = 0; i < num_page - 1;
+		tmp = tmp->pp_link, i++ )
+	{
+		if(tmp == NULL) 
+		{
+			return 0;
+		}
+		if( (page2pa(tmp->pp_link) - page2pa(tmp)) != PGSIZE )
+		{
+			return 0;
+		}
+	}
+	return 1;
+}
+\end{lstlisting}
+\setmainfont[BoldFont=黑体]{宋体}
+
+page\_free\_npages由于要求比较诡异，所以实现比较简单。注释要求将释放的链表存入chunck\_list，但是整个pmap.c没有其他任何地方操作这个链表。我依然就按照注释的要求实现了这个函数。
+
+\setmainfont{Consolas}
+\begin{lstlisting}[language={C},firstnumber=405,title=kern/pmap.c]
+int
+page_free_npages(struct Page *pp, int n)
+{
+	// Fill this function
+	struct Page* t_chunck;
+	
+	// check if continuous physical page
+	if (check_continuous(pp, n) == 0)
+		return -1;
+	
+	// add list to chunck list, list order by physical
+	if (chunck_list.pp_link == NULL) {
+		chunck_list.pp_link = pp;
+	} else {
+		t_chunck = chunck_list.pp_link;
+		while(1) {
+			if (t_chunck->pp_link != NULL)
+				t_chunck = t_chunck->pp_link;
+			else {
+				t_chunck->pp_link = pp;
+				break;
+			}
+		}
+	}
+	return 0;
+}
+\end{lstlisting}
+\setmainfont[BoldFont=黑体]{宋体}
+
+简单的说明下这个函数，首先验证传入的pp和n是否真实的指向一个物理地址连续的页表项，然后将整个链表插入到chunck\_list的末尾。
+
+接下来是page\_realloc\_npages函数，比较复杂。
+
+\setmainfont{Consolas}
+\begin{lstlisting}[language={C},firstnumber=450,title=kern/pmap.c]
+struct Page *
+page_realloc_npages(struct Page *pp, int old_n, int new_n)
+{
+	// Fill this function, all free
+	if (new_n == 0) {
+		page_free_npages(pp, old_n);
+		return NULL;
+	}
+	
+	// assume pp_ref will be added by caller 
+	// need more physical pages
+	if (old_n < new_n) {
+		uint32_t more_n = new_n - old_n;
+		uint32_t can_add_flag = 1;
+		uint32_t i = 0;
+	
+		// if can add to tail?
+		for (i = old_n; i < new_n; i++){
+			// empty and not over limit 
+			if ((pp+i)->pp_ref == 0 && pp+i < pages+npages ) {
+				can_add_flag = 0;
+				break;
+			}
+		}
+		
+		// if can't add to tail, free and alloc
+		if (can_add_flag == 0){
+			struct Page* new_alloc;
+			new_alloc = page_alloc_npages(ALLOC_ZERO, new_n);
+			memmove(page2kva(new_alloc), page2kva(pp),
+					old_n*PGSIZE);
+			page_free_npages(pp, old_n);
+			return new_alloc;
+		}
+
+		// if can add
+		// first, remove those from page_free_list
+		struct Page* find_pp; 
+		while(page_free_list > pp && page_free_list <= 
+			pp+more_n) {
+			page_free_list = page_free_list->pp_link;
+		}
+		find_pp = page_free_list;
+		while(find_pp != NULL && find_pp->pp_link != NULL) {
+			if (find_pp->pp_link > pp && find_pp->pp_link <= 
+				pp+more_n) {
+				find_pp->pp_link = find_pp->pp_link->pp_link;
+			}
+			find_pp = find_pp->pp_link;
+		}
+
+		// second, add to old alloc page list
+		for (i = 0; i < more_n; i++) {
+			(pp+i)->pp_link = pp+i+1;
+		}
+		(pp+more_n)->pp_link = NULL;
+
+		// third, init new memory
+		memset(page2kva(pp+1), 0, more_n*PGSIZE);
+
+		// fourth, return pp
+		return pp;
+
+	} else if (old_n > new_n) {
+		// free last pages
+		page_free_npages(pp+new_n, old_n-new_n);
+		(pp+new_n-1)->pp_link = NULL;
+		return pp; 
+
+	} else {
+		// old_n == new_n, do nothing
+		return pp;
+	}
+}
+\end{lstlisting}
+\setmainfont[BoldFont=黑体]{宋体}
+
+这个函数比较长，在此说明下它的功能。首先454行判断new\_n是否为0，如果是就全部free掉，这点练习的说明中并没有写。然后在461行判断是否new\_n大于old\_n。先说明new\_n更小的情况：
+
+如515行所示，直接free掉pp+new\_n后的物理页表项，然后将已经分配的链表的最后一块的pp\_link置为NULL表明这一块到达了链表末尾，十分简单。如果old\_n==new\_n，则什么都不做返回pp。
+
+如果new\_n比old\_n大，则进入462行的代码。首先判断后面直到new\_n个的页表项是否都为空，如果不是就直接alloc，memmove，free(lib/string.c中说用memmove取代memcpy)。如果可以直接扩展就先将这些要被扩展的未分配页表项从page\_free\_list中移除，这一步也分两部分，先判断链表头是否属于需要移除的部分，再判断链表内部是否需要移除。第二步是将扩展的页表项块加入到pp的链表中，第三步初始化扩展的物理页(练习中没有说明这一步，属于我自己判断做的)。最后返回pp地址。
+
+\setmainfont{Consolas}
+\begin{lstlisting}[language={C},firstnumber=172,title=kern/pmap.c]
+	check_page_free_list(1);
+	check_page_alloc();
+	check_page();
+	check_n_pages();
+\end{lstlisting}
+\setmainfont[BoldFont=黑体]{宋体}
+
+做完这些后可以通过check\_n\_pages函数，虽然mem\_init中有些不合理的是这个测试函数在check\_page后，而check\_page在后面才会实现，因此我调换了两个测试函数的顺序先测试下多个物理页的操作函数是否正确，也许由于page\_realloc\_npages函数是助教老师新加的，并没有在grade脚本中进行相应测试，我自行写了些测试判断了正确性。
+
+\section{虚拟内存}
+
+\subsection{地址转换}
+关于逻辑地址，虚拟地址，线性地址，物理地址的含义和转换，在上课，以及网上很多地方都有很详细的介绍，因此我就不多加描述了。比较值得注意的是，由于遗留原因，x86的页模式实际上也要进过段模式的转化，合成段页模式。就像实模式表示20位的地址一样，只不过这里是32位的逻辑地址且直接表示为虚拟地址。
+
+练习中还说明了一些QEMU可以用于查看虚拟地址物理地址对应关系的操作。总之就是让我们先彻底区分系统中哪些是虚拟地址，哪些是物理地址。
+
+在代码中除了physaddr\_t表示的类型其余都是虚拟地址，而跟物理地址有关的函数主要是PADDR，KADDR，page2pa，pa2page。
+
+对于Question1，显然是虚拟地址，因为变量x和value是在程序中创建的。
+
+\subsection{引用计数}
+
+主要说明了被映射的物理page的pp\_ref会增加，超过UTOP的虚拟内存地址地址都是与内核有关，不会被free，除非重启关机。
+
+主要参考inc/memlayout.h中的图。图比较长我就不贴了。再后面的内容中再详细介绍这张图的意义。
+
+\subsection{页表管理}
+
+这里要求实现5个函数，完成虚拟地址管理。
+
+\setmainfont{Consolas}
+\begin{lstlisting}[language={C},firstnumber=555,title=kern/pmap.c]
+pte_t *
+pgdir_walk(pde_t *pgdir, const void *va, int create)
+{
+	// Fill this function in
+	struct Page* new_page;
+	pde_t* pde = pgdir + PDX(va);
+	pte_t* pte;
+
+	// has created
+	if (*pde & PTE_P) {
+		pte = (pte_t*)KADDR(PTE_ADDR(*pde));
+		return pte + PTX(va);
+	}
+	
+	// need create
+	if (create == 0) {
+		return NULL;
+	} else {
+		new_page = page_alloc(ALLOC_ZERO);
+		if (new_page == NULL) {
+			return NULL;
+		} else {
+			new_page->pp_ref++;
+			*pde = page2pa(new_page) | PTE_P | PTE_W |
+					 PTE_U;
+			pte = (pte_t*)KADDR(PTE_ADDR(*pde));
+			return pte + PTX(va);
+		}
+	}
+}
+\end{lstlisting}
+\setmainfont[BoldFont=黑体]{宋体}
+
+这个函数根据输入的虚拟地址va，返回它在二级页表(即页目录的下一级)对应的entry，也就是它所在的物理页。
+
+根据create参数，如果物理页不存在(564行判断页目录中entry的PTE\_P位)，则需要为这个虚拟地址分配物理页。
+
+步骤是先创建一个物理页，然后将物理页对应的PTE传给页表保存并分配权限，包括P存在，W可写，U用户可读。然后将pte+PTX(va)返回给用户，即为对应的物理页表位置。
+
+
+\setmainfont{Consolas}
+\begin{lstlisting}[language={C},firstnumber=595,title=kern/pmap.c]
+static void
+boot_map_region(pde_t *pgdir, uintptr_t va, size_t size,
+				physaddr_t pa, int perm)
+{
+	// Fill this function in
+	uint32_t n = size/PGSIZE;
+	uint32_t i;
+	pte_t* pte;
+	for (i = 0; i < n; i++) {
+		pte = pgdir_walk(pgdir, (void*)va, 1);
+		*pte = pa | perm | PTE_P;
+		va += PGSIZE;
+		pa += PGSIZE;
+	}
+}
+\end{lstlisting}
+\setmainfont[BoldFont=黑体]{宋体}
+
+将从va开始的size个byte映射到pa，使用pgdir\_walk函数实现十分简单。
+
+\setmainfont{Consolas}
+\begin{lstlisting}[language={C},firstnumber=670,title=kern/pmap.c]
+struct Page *
+page_lookup(pde_t *pgdir, void *va, pte_t **pte_store)
+{
+	// Fill this function in
+	pte_t* pte = pgdir_walk(pgdir, va, 0);
+	
+	if (pte_store)
+		*pte_store = pte;
+	if ((pte != NULL) && (*pte & PTE_P))
+		return pa2page(PTE_ADDR(*pte));
+	return NULL;
+}
+\end{lstlisting}
+\setmainfont[BoldFont=黑体]{宋体}
+
+查找给定的虚拟地址va，返回对应的页表的page，如果有pte\_store，则将对应的pte的位置保存于此。
+
+\setmainfont{Consolas}
+\begin{lstlisting}[language={C},firstnumber=698,title=kern/pmap.c]
+void
+page_remove(pde_t *pgdir, void *va)
+{
+	// Fill this function in
+	pte_t* pte;
+	struct Page* pp = page_lookup(pgdir, va, &pte);
+	
+	if (pp != NULL) {
+		*pte = 0;
+		page_decref(pp);
+		tlb_invalidate(pgdir, va);
+	}
+}
+\end{lstlisting}
+\setmainfont[BoldFont=黑体]{宋体}
+
+page\_remove()函数也十分简单，删除给定va对应的页表，注意需要清空TLB对应的项，防止其他指令通过TLB访问已删除的页表。
+
+\setmainfont{Consolas}
+\begin{lstlisting}[language={C},firstnumber=634,title=kern/pmap.c]
+int
+page_insert(pde_t *pgdir, struct Page *pp, void *va, int perm)
+{
+	// Fill this function in
+	pte_t *pte = pgdir_walk(pgdir, va, 1);
+
+	// not exist and can't create
+	if (pte == NULL)
+		return -E_NO_MEM;
+	
+	// if exist
+	if (*pte & PTE_P) {
+		if (PTE_ADDR(*pte) == page2pa(pp)) {
+			tlb_invalidate(pgdir, va);
+			pp->pp_ref--;
+		} else {
+			// page_remove will decrease pp_ref
+			page_remove(pgdir, va);
+		}
+	}
+	*pte = page2pa(pp) | perm | PTE_P;
+	pp->pp_ref++;
+	return 0;
+}
+\end{lstlisting}
+\setmainfont[BoldFont=黑体]{宋体}
+
+这个函数将虚拟地址va映射到pp对应的页表上，如果没有分配就直接映射va，如果页表已分配先判断是否映射va相同的虚拟地址，如果是就只删除对应的TLB，如果不是就直接remove，两种情况在后面统一重新写入页表。为了一致性，我们在已分配的第一种情况也减减pp\_ref为了后面加不需要再立flag进行判断。
+
+完成这些后check\_page()函数通过。
+
+\section{内核地址空间}
+
+根据inc/memlayout.h中的图可知，UTOP以下是用户环境能使用的虚拟内存，ULIM以上是内核才有限权的空间，期间是只有Read限权的空间，保存了内核相关的一系列代码，不可修改。
+
+现在开始填充mem\_init函数，
+
+\setmainfont{Consolas}
+\begin{lstlisting}[language={C},firstnumber=187,title=kern/pmap.c]
+boot_map_region(kern_pgdir, UPAGES,
+				ROUNDUP(npages*page_size, PGSIZE),
+				PADDR(pages), PTE_P | PTE_U);
+\end{lstlisting}
+\setmainfont[BoldFont=黑体]{宋体}
+
+根据注释，这一段将最开始物理内存写入状态的pages映射到UPAGES处，即UPAGES到UVPT存储的是pages。
+
+
+
+\setmainfont{Consolas}
+\begin{lstlisting}[language={C},firstnumber=200,title=kern/pmap.c]
+boot_map_region(kern_pgdir, KSTACKTOP-KSTKSIZE,
+				KSTKSIZE, PADDR(bootstack),
+				PTE_P | PTE_W);
+\end{lstlisting}
+\setmainfont[BoldFont=黑体]{宋体}
+
+这一段将bootstack映射到了KSTACKTOP的下方，属于内核代码。
+
+\setmainfont{Consolas}
+\begin{lstlisting}[language={C},firstnumber=210,title=kern/pmap.c]
+boot_map_region(kern_pgdir, KERNBASE, ~KERNBASE+1,
+				0, PTE_P | PTE_W);
+\end{lstlisting}
+\setmainfont[BoldFont=黑体]{宋体}
+
+这一段应该就是夏老师上课讲的，虚拟内存上方又将内核代码全部映射了一遍。
+
+至此，根据注释，lab的测试全部通过。对虚拟内存空间的分配有了一个大致的了解，还是有很多细节每太搞明白。
+
+Question2中，答案参考answers-lab2.txt。简单说下。
+
+第2题根据inc/memlayout.h中的图进行填写即可，还有部分需要计算跟程序输出。
+
+第3题题页表有限权位，用户不能修改内核处数据。
+
+第4题根据上面写的UPAGES处的映射可计算，UPAGES到UVPT有一个PTSIZE的大小，一个struct Page是8个byte，总支持空间是PTSIZE/8*PGSIZE=2147483648Byte=2GB。
+
+第5题，根据理想设计一共有1个PGSIZE大小的页目录和1024个页表去支持4GB的内存，开销为4MB空间，就是上面一题分配的大小。而实际上获取的npages为16639，所以只需要17个页表，页目录就只需要17*4个byte，一共是17*4+17*PGSIZE=69700Byte=68.07KB。这里还不包括struct Page*链表维护等空间。
+
+第6题，在kern/entry.S的67行之后EIP基于kernbase，因为kern/entrypgdir中同时将两块虚拟都内都映射到了同一个物理内存空间(这个lab1好像回答过了)
+
+\section{总结}
+
+至此这个lab算写完了，花的时间远远少于lab1，可能主要原因是lab1需要了解整个系统的结构，第一次看JOS的代码，而且还有大量的汇编。而这个lab专注于虚拟内存，物理内存部分，知识点较lab1更少，但对于虚拟内存空间的分配，我依然有很多不解以及觉得不合理的地方。
+
+\end{document}
+

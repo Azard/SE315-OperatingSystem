@@ -1,0 +1,16 @@
+\BOOKMARK [1][-]{section.1}{前言}{}% 1
+\BOOKMARK [1][-]{section.2}{User\040Environments\040and\040Exception\040Handling}{}% 2
+\BOOKMARK [2][-]{subsection.2.1}{Environment\040State}{section.2}% 3
+\BOOKMARK [2][-]{subsection.2.2}{Allocating\040the\040Environments\040Array}{section.2}% 4
+\BOOKMARK [2][-]{subsection.2.3}{Creating\040and\040Running\040Environments}{section.2}% 5
+\BOOKMARK [2][-]{subsection.2.4}{Handling\040Interrupts\040and\040Exceptions}{section.2}% 6
+\BOOKMARK [2][-]{subsection.2.5}{Basics\040of\040Protected\040Control\040Transfer}{section.2}% 7
+\BOOKMARK [2][-]{subsection.2.6}{Types\040of\040Exceptions\040and\040Interrupts}{section.2}% 8
+\BOOKMARK [2][-]{subsection.2.7}{Setting\040Up\040the\040IDT}{section.2}% 9
+\BOOKMARK [1][-]{section.3}{Page\040Faults,\040Breakpoints\040Exceptions,\040and\040System\040Calls}{}% 10
+\BOOKMARK [2][-]{subsection.3.1}{Handling\040Page\040Faults}{section.3}% 11
+\BOOKMARK [2][-]{subsection.3.2}{The\040Breakpoint\040Exception}{section.3}% 12
+\BOOKMARK [2][-]{subsection.3.3}{System\040calls}{section.3}% 13
+\BOOKMARK [2][-]{subsection.3.4}{User-mode\040startup}{section.3}% 14
+\BOOKMARK [2][-]{subsection.3.5}{Page\040faults\040and\040memory\040protection}{section.3}% 15
+\BOOKMARK [1][-]{section.4}{总结}{}% 16

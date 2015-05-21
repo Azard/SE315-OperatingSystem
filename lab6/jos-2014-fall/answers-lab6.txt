@@ -1,0 +1,41 @@
+answers-lab6
+Xiong Weilun, 5120379076
+There is answers for questions in lab6, more details please reference to lab6.pdf in upload package.
+
+Question 1.
+=====================================
+
+I use a global structure to store transmit descriptors and use 'memmove' to transmit data. Other things like register I follow Intel manual.
+
+And if Transmit Ring is full, I use 'return -E_FULL_TX' to say it's full, and this strategy pass all test, Yeah.
+=====================================
+
+Question 2.
+=====================================
+Also use global structure and system call, when queue is empty and user env call request, it panic just like Question-1 return false flag.
+=====================================
+
+Question 3.
+=====================================
+
+------------------------------
+jhttpd on JOS
+
+This file came from JOS
+Cheesy web page!
+------------------------------
+
+This html file write in /fs/index.html. "Cheesy web page!" is blink and ugly.
+=====================================
+
+Question 4.
+=====================================
+Half Friday, a full Saturday and a full Sunday
+About 20~30 hours? WTF weekend!
+=====================================
+
+Challenge
+=====================================
+I write "load MAC" challenge.
+See "lab6.pdf" in root directory for more detail.
+=====================================

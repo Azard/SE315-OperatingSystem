@@ -1,0 +1,894 @@
+\documentclass[11pt,a4paper]{article} 
+
+%=================宏包=================
+\usepackage{fontspec}
+\usepackage{xltxtra}
+\usepackage{xcolor}
+\usepackage{listings}
+\usepackage[colorlinks,linkcolor=black,anchorcolor=black,citecolor=black]{hyperref}
+\usepackage{cite}
+\usepackage{indentfirst}
+\usepackage{graphicx}
+\usepackage{fancyhdr}
+\usepackage{setspace}
+
+
+
+%=================字体=================
+\setmainfont[BoldFont=黑体]{宋体}
+\setsansfont{宋体} 
+\setmonofont{宋体}
+
+%=================字号=================
+\newcommand{\chuhao}{\fontsize{42pt}{\baselineskip}\selectfont}
+\newcommand{\xiaochuhao}{\fontsize{36pt}{\baselineskip}\selectfont}
+\newcommand{\yihao}{\fontsize{28pt}{\baselineskip}\selectfont}
+\newcommand{\erhao}{\fontsize{21pt}{\baselineskip}\selectfont}
+\newcommand{\xiaoerhao}{\fontsize{18pt}{\baselineskip}\selectfont}
+\newcommand{\sanhao}{\fontsize{15.75pt}{\baselineskip}\selectfont}
+\newcommand{\sihao}{\fontsize{14pt}{\baselineskip}\selectfont}
+\newcommand{\xiaosihao}{\fontsize{12pt}{\baselineskip}\selectfont}
+\newcommand{\wuhao}{\fontsize{10.5pt}{\baselineskip}\selectfont}
+\newcommand{\xiaowuhao}{\fontsize{9pt}{\baselineskip}\selectfont}
+\newcommand{\liuhao}{\fontsize{7.875pt}{\baselineskip}\selectfont}
+\newcommand{\qihao}{\fontsize{5.25pt}{\baselineskip}\selectfont}
+
+%=================section=================
+\makeatletter
+\renewcommand\section{\@startsection{section}{1}{\z@}%
+{-1.5ex \@plus -.5ex \@minus -.2ex}%
+{.5ex \@plus .1ex}%
+{\normalfont\sanhao\fontspec{黑体}}}
+\makeatother
+
+%=================subsection=================
+\makeatletter
+\renewcommand\subsection{\@startsection{subsection}{1}{\z@}%
+{-1.25ex \@plus -.5ex \@minus -.2ex}%
+{.4ex \@plus .1ex}%
+{\normalfont\sihao\fontspec{黑体}}}
+\makeatother
+
+%=================subsubsection=================
+\makeatletter
+\renewcommand\subsubsection{\@startsection{subsubsection}{1}{\z@}%
+{-1ex \@plus -.5ex \@minus -.2ex}%
+{.3ex \@plus .1ex}%
+{\normalfont\xiaosihao\fontspec{黑体}}}
+\makeatother
+
+%=================段落缩进=================
+\makeatletter
+\let\@afterindentfalse\@afterindenttrue
+\@afterindenttrue
+\makeatother
+\setlength{\parindent}{2em}  %中文缩进两个汉字位
+
+
+%=================页面边距=================
+\addtolength{\topmargin}{-54pt}
+\setlength{\oddsidemargin}{0.63cm}  % 3.17cm - 1 inch
+\setlength{\evensidemargin}{\oddsidemargin}
+\setlength{\textwidth}{14.66cm}
+\setlength{\textheight}{24.00cm}    % 24.62
+
+%=================页眉=================
+\pagestyle{fancy}\lhead{JOS-Lab3}\rhead{\fontspec{宋体}熊伟伦，5120379076}
+
+%=================段落=================
+\setlength{\parskip}{0.5\baselineskip}
+\XeTeXlinebreaklocale "zh"                      % 针对中文进行断行
+\XeTeXlinebreakskip = 0pt plus 1pt minus 0.1pt  % 给予TeX断行一定自由度
+\linespread{1.4}                                % 1.4倍行距
+
+%=================代码=================
+\lstset{
+	basicstyle=\linespread{1.0}\small,
+	aboveskip=-10ex,
+	stringstyle=\ttfamily,
+	keywordstyle=\color{blue}\bfseries,
+	commentstyle=\color[RGB]{0,96,96},
+	backgroundcolor=\color[rgb]{0.95,1.0,1.0},
+	numbers=left,
+	frame={trBL},
+	frameround={fttt},
+	xleftmargin=2em,
+	xrightmargin=2em,
+	aboveskip=1em,
+	tabsize=4
+}
+
+
+\begin{document}
+
+\title{\xiaochuhao{JOS-Lab-3 实验报告}}
+\author{\sanhao{熊伟伦}\\\sanhao{5120379076}\\\sanhao{azardf4yy@gmail.com}}
+\date{\sanhao{2014年10月29日-11月3日}}
+\maketitle
+\tableofcontents
+\newpage
+
+\section{前言}
+
+该报告描述了我在lab3实验的过程中遇到的问题与解决的方法，介绍了lab3的整体结构。指导中问题的解答参考上传的压缩包中的answers-lab3.txt文件。
+
+\section{User Environments and Exception Handling}
+
+这一部分首先实现User Environments相关的空间分配，地址映射。这一部分主要和kern/env.c文件有关。
+
+\subsection{Environment State}
+
+这一部分主要是讲解说明，lab的材料说明的十分详细。唯一比较奇怪的是为何下方会有env\_cr3的说明出现，源代码中明明没有这个变量。不过根据我的推测，可能是env\_pgdir和env\_cr3的作用重复了，就删掉了这个变量。
+
+\subsection{Allocating the Environments Array}
+
+这一部分包含了exercise-1，需要在物理内存中分配一块给env链表使用，并且映射到相应的虚拟内存空间。
+首先是物理内存分配，调用boot\_alloc函数。
+
+\setmainfont{Consolas}
+\begin{lstlisting}[language={C},firstnumber=1,title=kern/pmap.c] 
+envs = boot_alloc(NENV * sizeof(struct Env));
+\end{lstlisting}
+\setmainfont[BoldFont=黑体]{宋体}
+
+代码比较简单，分配一块NENV(1024)个的大小为Env的空间，内存空间头赋给envs。
+boot\_alloc函数是在lab2中实现的，会自动按PGSIZE对齐。
+
+\setmainfont{Consolas}
+\begin{lstlisting}[language={C},firstnumber=1,title=kern/pmap.c] 
+boot_map_region(kern_pgdir, UENVS,
+                ROUNDUP(NENV*sizeof(struct Env), PGSIZE), 
+                PADDR(envs), PTE_U | PTE_P);
+\end{lstlisting}
+\setmainfont[BoldFont=黑体]{宋体}
+
+然后需要映射到虚拟内存中的UENVS段，权限位按照memlayout.h以及注释中说明的设置，用户能够读取这一部分的内容。
+
+这样这一部分的exercise应该算完成了，运行make qemu，显示check\_kern\_pgdir()和check\_page\_installed\_pgdir()成功。该部分完成，成功分配一块内存用于env。
+
+\subsection{Creating and Running Environments}
+
+首先资料说明了由于JOS目前还没有文件系统，所以用户环境需要直接读入ELF二进制文件。接下来又介绍了一系列整个lab如何组织编译读取ELF文件的。因为这一部分的代码与读取ELF文件有关。接下来是exercise-2。
+
+这一部分比较长，是整个组建用户环境的代码，也比较复杂。
+
+首先是env\_init函数
+
+\setmainfont{Consolas}
+\begin{lstlisting}[language={C},firstnumber=1,title=kern/env.c] 
+void
+env_init(void)
+{
+	// Set up envs array
+	// LAB 3: Your code here.
+	int32_t i;
+	env_free_list = NULL;
+	for (i = NENV-1; i >= 0; i--) {
+		envs[i].env_status = ENV_FREE;
+		envs[i].env_id = 0;
+		envs[i].env_link = env_free_list;
+		env_free_list = &envs[i];
+	}
+
+	// Per-CPU part of the initialization
+	env_init_percpu();
+}
+\end{lstlisting}
+\setmainfont[BoldFont=黑体]{宋体}
+
+参照注释，env\_free\_list是整个env的链表头，并且注释要求env\_alloc返回envs数组的第0个元素，即envs[0]。因此为了符合这个规律习惯，我将链表按照地址大小从小到大链起来。
+
+因此从后面开始初始化，分别设置env\_status，env\_id，并且将env\_link指向地址更大的一个Env结构，再将env\_free\_list指向该块。最终初始化完毕。
+
+然后又调用了env\_init\_percpu()，重新设置了段寄存器的权限使用属于kernel还是user，因为这一部分不需要我们实现，就不详细讨论了。
+
+接下来是env\_setup\_vm函数，全称是setup kernel virtual memory layout for env。
+
+\setmainfont{Consolas}
+\begin{lstlisting}[language={C},firstnumber=1,title=kern/env.c] 
+static int
+env_setup_vm(struct Env *e)
+{
+	int i;
+	struct Page *p = NULL;
+
+	if (!(p = page_alloc(ALLOC_ZERO)))
+		return -E_NO_MEM;
+
+	e->env_pgdir = page2kva(p);
+	p->pp_ref++;
+	for (i = PDX(UTOP); i < NPDENTRIES; i++){
+		e->env_pgdir[i] = kern_pgdir[i];
+	}
+
+	e->env_pgdir[PDX(UVPT)] = PADDR(e->env_pgdir) 
+	                          | PTE_P | PTE_U;
+
+	return 0;
+}
+\end{lstlisting}
+\setmainfont[BoldFont=黑体]{宋体}
+
+按照注释要求，首先分配一块页作为一个Env的env\_pgdir使用，该页被引用次数加1。再将UTOP以上的位置从kern\_pgdir中复制到env\_pgdir中，以便env能访问这些位置(部分虽然没有权限)。
+
+我测试输出得到PDX(UTOP)为955，也就是i的范围是955到1023。
+
+然后又单独设置，将该环境本身的env\_pgdir赋给env\_pgdir的PDX(UVPT)位置，这4MB的虚拟空间刚好对应env\_pgdir。
+
+需要明确注意的是，e->env\_pgdir本身的值是指向内核虚拟地址中的一个页，也就是物理内存地址加上0xF0000000。而整个env的pgdir的4kb大小保存的是指向这个环境的虚拟地址的值的pte\_t。他们的domain不一样，这是我的理解。虽然他们在UTOP之上的值是完全一样的。
+
+接下来是region\_alloc函数。
+
+\setmainfont{Consolas}
+\begin{lstlisting}[language={C},firstnumber=1,title=kern/env.c] 
+static void
+region_alloc(struct Env *e, void *va, size_t len)
+{
+	// LAB 3: Your code here.
+	// (But only if you need it for load_icode.)
+	//
+	// Hint: It is easier to use region_alloc if the caller can pass
+	//   'va' and 'len' values that are not page-aligned.
+	//   You should round va down, and round (va + len) up.
+	//   (Watch out for corner-cases!)
+
+	uint32_t va_start = (uint32_t)ROUNDDOWN(va, PGSIZE);
+	uint32_t va_end = (uint32_t)ROUNDUP(va+len, PGSIZE);
+	struct Page *cur_page;
+
+	uint32_t i;
+	for (i = va_start; i < va_end; i += PGSIZE) {
+		cur_page = page_alloc(0);
+		if (!cur_page) {
+			panic("env alloc page but out of memory\n");
+		} else {
+			if (page_insert(e->env_pgdir, cur_page,
+			    (void*)i, PTE_U | PTE_W))
+				panic("insert page failed\n");
+		}
+	}
+}
+\end{lstlisting}
+\setmainfont[BoldFont=黑体]{宋体}
+
+虽然资料后面说panic可以使用 \%e来表示错误值，但我更喜欢用自己的语言表达，文档这里由于显示问题我将panic的内容删减了，源代码中稍有不同。
+
+这个函数的作用是在用户环境下，实际分配一块内存。首先对齐得到用户环境下的虚拟地址的范围，然后分配物理页，注意，这里调用了page\_alloc是真实分配物理内存，物理内存会真的减少。然后调用page\_insert函数修改env\_pgdir的信息，更新刚刚分配的新的页的信息。这里的panic的判断我用了比较省行数的写法。
+
+下一个函数是load\_icode，比较麻烦，主要是读取ELF文件到用户环境下。
+
+\setmainfont{Consolas}
+\begin{lstlisting}[language={C},firstnumber=1,title=kern/env.c] 
+static void
+load_icode(struct Env *e, uint8_t *binary, size_t size)
+{
+	// LAB 3: Your code here.
+	struct Proghdr *ph, *eph;
+	struct Elf *elf = (struct Elf*)binary;
+	
+	if (elf->e_magic != ELF_MAGIC)
+		panic("load_icode failed: ELF format error");
+
+	ph = (struct Proghdr*)((uint8_t*)elf + elf->e_phoff);
+	eph = ph + elf->e_phnum;
+
+	lcr3(PADDR(e->env_pgdir));
+	for(; ph < eph; ph++) {
+		if (ph->p_type == ELF_PROG_LOAD) {
+			region_alloc(e, (void*)ph->p_va, ph->p_memsz);
+			memmove((void*)ph->p_va,
+			        (void*)(binary+ph->p_offset),
+			        ph->p_filesz);
+			memset((void*)(ph->p_va+ph->p_filesz), 
+			       0, (ph->p_memsz-ph->p_filesz));
+		}
+	}
+	lcr3(PADDR(kern_pgdir));
+
+	e->env_tf.tf_eip = elf->e_entry;
+
+	// LAB 3: Your code here.
+	region_alloc(e, (void*)(USTACKTOP-PGSIZE), PGSIZE);
+	return;
+}
+\end{lstlisting}
+\setmainfont[BoldFont=黑体]{宋体}
+
+一开始我是写不来的，很不好入手，毕竟ELF是个很麻烦的东西，但根据注释参照boot\_main读取ELF的方式，我就照抄。
+
+最值得注意的一点是调用了两次lcr3函数，在上面一个函数我说到了用户环境的虚拟地址和内核的虚拟地址的区别。这个lcr3的调用就是因为这个区别。
+
+因为调用这个函数肯定是从内核态开始读取ELF文件，相当于一个内核打开一个新进程的过程，使用的是kern\_pgdir。但是在读取ELF文件的数据的时候，应该是在用户态进行的，因为还要调用region\_alloc函数，所以之前调用lcr3读取env\_pgdir是切换到用户环境的虚拟内存地址中。
+
+在读取完毕后又切回到kernel的虚拟内存地址中。lcr3的参数是物理地址，因此需要用PADDR转换一下。
+
+根据注释，还需要设置入口elf->e\_entry。
+
+最后还需要分配一个实际的页用于用户进程的栈，因为栈是向下长的，所以第一个PGSIZE就是从 USTACKTOP-PGSIZE开始的，有一点奇怪的是如果每次load\_icode都需要分配这个内核态的虚拟页给Env，多个进程同时需要创建会如何，这个应该在后面会出现解决方案，暂时先不考虑。
+
+接下来是env\_create，我依旧没使用panic的\%e。
+
+\setmainfont{Consolas}
+\begin{lstlisting}[language={C},firstnumber=1,title=kern/env.c] 
+void
+env_create(uint8_t *binary, size_t size, enum EnvType type)
+{
+	// LAB 3: Your code here.
+	struct Env *e;
+	int t = env_alloc(&e, 0);
+
+	if (t == -E_NO_MEM) {
+		panic("env_alloc out of memory\n");
+		return;
+	}
+	if (t == -E_NO_FREE_ENV) {
+		panic("env_alloc no more env to use\n");
+		return;
+	}
+	load_icode(e, binary, size);
+	e->env_type = type;
+	return;
+}
+\end{lstlisting}
+\setmainfont[BoldFont=黑体]{宋体}
+
+这个函数就是先调用env\_alloc在内存中组织好一个Env的空间结构，然后调用load\_icode读取ELF文件。
+
+其中env\_alloc函数已经帮我们写好了，主要是调用开始实现的env\_setup\_vm函数，并且再设置传入的Env的各个参数，维护好env\_free\_list，设置保存的寄存器等。最后会cprintf一下创建新env成功，也就是资料中说的cprintt这句话就说明这一个exercise完成了。总而言之就是为还没载入ELF的新Env组织好Env链表中的信息。
+
+最后是env\_run。
+
+
+\setmainfont{Consolas}
+\begin{lstlisting}[language={C},firstnumber=1,title=kern/env.c] 
+env_run(struct Env *e)
+{
+	// LAB 3: Your code here.
+
+	//panic("env_run not yet implemented");
+	
+	if (curenv != e) {
+		if (curenv && curenv->env_status == ENV_RUNNING)
+			curenv->env_status = ENV_RUNNABLE;
+		curenv = e;
+		curenv->env_status = ENV_RUNNING;
+		curenv->env_runs++;
+		lcr3(PADDR(curenv->env_pgdir));
+	}
+	env_pop_tf(&curenv->env_tf);
+}
+\end{lstlisting}
+\setmainfont[BoldFont=黑体]{宋体}
+
+这个函数就是切换进程的函数。按照注释一步一步来。
+
+首先判断是否是切换进程，如果是并且当前进程是ENV\_RUNNING，则变成ENV\_RUNNABLE，然后将curenv换成e，改变curenv的状态为ENV\_RUNNING，env\_runs加1，切换到该进程的虚拟地址空间。最后调用env\_pop\_tfduqu读取该进程之前保存的寄存器的信息并且跳转到新的进程。
+
+env\_pop\_tf函数是汇编内联，并且调用了popal，比较复杂，虽然明白这个函数的作用，但要完全说清楚很难。大致是先设置esp，之后popal将寄存器数据从栈中读出，最后iret跳转到用户进程的入口。
+
+这个时候exercise-2的代码应该算是完成了，运行make qemu，出现了env\_alloc中cprintf的信息。显示[00000000] new env 00001000。并且无限重启，根据资料应该会死triple fault导致的重启。Move on!
+
+接下来资料告诉我triple fault的来由，并且让我使用gdb测试是否进入syscall。
+
+按照提示，我根据生成的.asm文件，分别在env\_pop\_tf的入口0xF0103940和syscall的入口0x00800D09设置break point，成功进入0x00800D09，说明这个syscall调用成功了，中断成功调用。
+
+根据分析，这个syscall是hello.c中调用cprintf出现的，至于为什么没能继续执行，是因为我的handle interrupt的功能还没写。Move on!
+
+
+\subsection{Handling Interrupts and Exceptions}
+
+这里给出的第一个链接很简单明了的介绍了中断和异常，夏老师在上课时也花了很长时间进行了介绍。
+
+简单的说，exception，又叫trap gate通常用于用户控制的syscall，比如debug调试的时候，而interrupt通常是CPU调度进程切换的时候使用的。而且trap gate不会屏蔽其他中断，在执行trap gate调用的代码的过程中会被其他中断抢占，而interrupt会屏蔽其他中断，就像lab1中boot的时候一样进行的寄存器位设置进行控制这个特性。
+
+\subsection{Basics of Protected Control Transfer}
+
+这里介绍了夏老师上课说的一些内容。exception属于程序本身的保护机制，比如除0，进行syscall，shi是同步的。interrupt属于系统要求程序中断，例如外界来了一个IO信号，是异步的。
+
+The Interrupt Descriptor Table 简称IDT，是内核本身存在的一个表，用例表示中断的信号是属于哪一种情况，从0到255。又说明了JOS中所有的interrupte的handle都是内核进行的。
+
+The Task State Segment 简称TSS，用于在中断的时候保存CPU寄存器的值，主要当前状态的权限有关。
+
+\subsection{Types of Exceptions and Interrupts}
+
+资料又介绍了IDT的分配，从0~31是同步的exception，31以上用于软中断和异步中断。以及当前section需要实现0~31的功能，后面的section需要实现JOS中的48号syscall功能(对应于x86应该是0x80)。Lab4需要实现外部硬件中断例如时钟中断。
+
+\subsection{Setting Up the IDT}
+
+这里需要实现前面空缺的Interrupt Handle的功能，部分代码已经帮我们实现好了。在kern/trapentry.S中。
+
+
+\setmainfont{Consolas}
+\begin{lstlisting}[language={[x86masm]Assembler},firstnumber=1,title=kern/trapentry.c] 
+/*
+ * Lab 3: Your code here for generating 
+   entry points for the different traps.
+ */
+
+	TRAPHANDLER_NOEC(entry0, T_DIVIDE);
+	TRAPHANDLER_NOEC(entry1, T_DEBUG);
+	TRAPHANDLER_NOEC(entry2, T_NMI);
+	TRAPHANDLER_NOEC(entry3, T_BRKPT);
+	TRAPHANDLER_NOEC(entry4, T_OFLOW);
+	TRAPHANDLER_NOEC(entry5, T_BOUND);
+	TRAPHANDLER_NOEC(entry6, T_ILLOP);
+	TRAPHANDLER_NOEC(entry7, T_DEVICE);
+	TRAPHANDLER(entry8, T_DBLFLT);
+	TRAPHANDLER(entry10, T_TSS);
+	TRAPHANDLER(entry11, T_SEGNP);
+	TRAPHANDLER(entry12, T_STACK);
+	TRAPHANDLER(entry13, T_GPFLT);
+	TRAPHANDLER(entry14, T_PGFLT);
+	TRAPHANDLER_NOEC(entry16, T_FPERR);
+	TRAPHANDLER(entry17, T_ALIGN);
+	TRAPHANDLER_NOEC(entry18, T_MCHK);
+	TRAPHANDLER_NOEC(entry19, T_SIMDERR );
+\end{lstlisting}
+\setmainfont[BoldFont=黑体]{宋体}
+
+这里主要是注册下函数入口应对每个IDT的项，TRAPHANDLER比TRAPHANDLER\_NONEC多了一个压入error code，后者则只压入0，如何使用参考的Intel的手册。
+
+
+\setmainfont{Consolas}
+\begin{lstlisting}[language={[x86masm]Assembler},firstnumber=1,title=kern/trapentry.c] 
+ #see as inc/trap.h
+_alltraps:
+	pushw $0    #uint16_t padding
+	pushw %ds
+	pushw $0    #uint16_t padding 
+	pushw %es
+	pushal
+
+    movl $GD_KD, %eax
+	movw %ax, %ds
+	movw %ax, %es
+
+	pushl %esp
+
+	call trap
+\end{lstlisting}
+\setmainfont[BoldFont=黑体]{宋体}
+
+这一段参考了inc/trap.h的Trapframe的结构，然后按照注释的要求进行填写，主要作用是组织中断的堆栈结构，然后call trap函数执行中断。
+
+之后还需要在trap\_init()函数中调用SETGATE宏，这一段代码比较长我就不贴了，该函数在kern/trap.c中，主要是注册中断的trap函数和IDT表之间的映射关系，并且设置端和权限位。SETGATE宏在inc/mmu.h中定义。之后还调用了已经写好的trap\_init\_percpu。参照注释中的说明作用是读取内核态的TSS完成寄存器状态的切换。
+
+随后make grade就会显示Part A通过。两个Question参考answers-lab3.txt文件。
+
+对于Question2，我使用make run-softint-nox，确实显示出General Protection，与grade文件一样。
+
+\section{Page Faults, Breakpoints Exceptions, and System Calls}
+
+\subsection{Handling Page Faults}
+
+这里我就在trap\_dispatch函数中添加了两行代码，判断下是否是T\_PGFLT，如果是就进图page\_fault\_handler函数并传入Trapframe。
+
+\setmainfont{Consolas}
+\begin{lstlisting}[language={C},firstnumber=1,title=kern/trap.c] 
+static void
+trap_dispatch(struct Trapframe *tf)
+{
+	// Handle processor exceptions.
+	// LAB 3: Your code here.
+
+	if (tf->tf_trapno == T_PGFLT)
+		page_fault_handler(tf);
+
+\end{lstlisting}
+\setmainfont[BoldFont=黑体]{宋体}
+
+make grade确实part B的前4个都能通过。到目前为止的实现应该都没有问题。
+
+\subsection{The Breakpoint Exception}
+
+这一步的grade-breakpoint.sh我还需要安装tcl expect等工具，lab提供的虚拟机竟然没装！而且monitor.c中还缺少了必须的头文件kern/env.h，导致我env\_run都没找到，实在无语。
+
+这个exercise-6实在是太坑啦！我进入了debug后程序永远会死在一个panic里面然后无限int3，经过我漫长的单步调试发现是breakpoint在exit的时候调用了syscall然后sysexit又没有做，这个练习在后面，导致我这里panic程序无法结束，这太坑了！所以我是做完了后面一个练习再回来debug这个练习的，好在相比于后面一个练习，这个练习简直容易，因为后面一个练习更坑！好了，不说废话了。
+
+\setmainfont{Consolas}
+\begin{lstlisting}[language={C},firstnumber=1,title=kern/trap.c] 
+switch(tf->tf_trapno) {
+		case T_PGFLT:
+			page_fault_handler(tf);
+			break;
+		case T_DEBUG:
+		case T_BRKPT:
+			monitor(tf);
+			break;
+	}
+\end{lstlisting}
+\setmainfont[BoldFont=黑体]{宋体}
+
+首先修改trap\_dispatch，这个比较简单，我把DEBUG跟BRKPT转到monitor去处理就好了。这里我发现单步调试每次是trap DEBUG，而不是BRKPT。
+
+之后在monitor.h里面先声明下函数
+
+\setmainfont{Consolas}
+\begin{lstlisting}[language={C},firstnumber=1,title=kern/monitor.c] 
+int
+mon_debug_continue(int argc, char **argv, struct Trapframe *tf)
+{
+	uint32_t eflags;
+	if (tf == NULL) {
+		cprintf("No trapped environment\n");
+		return 1;
+	}
+	eflags = tf->tf_eflags;
+	eflags &= ~FL_TF;
+	tf->tf_eflags = eflags;
+	env_run(curenv);
+	return 0;
+}
+\end{lstlisting}
+\setmainfont[BoldFont=黑体]{宋体}
+
+continue按照资料写本身很简单，将单步调试的FL\_TF位变成0即可。
+
+但是我在这里卡了好久，完成了step后单步调试，手动int3很久慢慢跟踪才发现是breakpoint调用syscall然后panic了，panic竟然会无限重复jmp。所以等我完成了后面的sysenter跟sysexit后这个练习就能够按照预期进行下去，最后经过一些输出格式的修改跟grade脚本一样后就得分了。
+
+\setmainfont{Consolas}
+\begin{lstlisting}[language={C},firstnumber=1,title=kern/monitor.c] 
+int
+mon_debug_step(int argc, char **argv, struct Trapframe *tf)
+{
+	uint32_t eflags;
+	if (tf == NULL) {
+		cprintf("No trapped environment\n");
+		return 1;
+	}
+	eflags = tf->tf_eflags;
+	eflags |= FL_TF;
+	tf->tf_eflags = eflags;
+
+	cprintf("tf_eip=0x%x\n", tf->tf_eip);
+	env_run(curenv);
+	return 0;
+}
+\end{lstlisting}
+\setmainfont[BoldFont=黑体]{宋体}
+
+单步调试和continue差不多，就是将FL\_TF位变成1。
+
+\setmainfont{Consolas}
+\begin{lstlisting}[language={C},firstnumber=1,title=kern/monitor.c] 
+int
+mon_debug_display(int argc, char **argv, struct Trapframe *tf)
+{
+	if (argc != 2) {
+		cprintf("please enter x addr");
+	}
+	uint32_t get_addr;
+	get_addr = strtol(argv[1], NULL, 16);
+	
+	uint32_t get_val;
+    __asm __volatile("movl (%0), %0" 
+    : "=r" (get_val) : "r" (get_addr)); 
+	
+	cprintf("%d\n", get_val);
+	return 0;
+}
+\end{lstlisting}
+\setmainfont[BoldFont=黑体]{宋体}
+
+display的话我查了各个函数文件很久，模仿写内嵌汇编和strtol函数的调用，好在这些都不是很困难。x 后面输入0x或者不输入0x都默认是16进制，这个和strtol的实现有关，使用0开头就认为是8进制。这个操作后面的地址随意输入有可能会造成page-fault。
+
+经过一段时间的调试通过了grade-breakpoint.sh。
+
+Question3和4参见anwers-lab3.txt。
+
+\subsection{System calls}
+
+这里比较麻烦的是搞清楚整个syscall的调用流程，我的理解是这样的。用户进行syscall的时候，调用的是lib/syscall.c中的syscall，然后进入kern/trap.c的路由根据中断号，进入kern/syscall.c中的syscall函数，然后根据对应syscallno参数再路由一次调用对应的操作。操作结束后在trap的调用中返回curenv。
+
+这个exercise-7在我还没有理解或者说写一遍正常的syscall的时候直接做我觉得是非常不合理的。
+
+这个练习实现的是跳过中间的路由进入trap的阶段，直接根据syscallno调用需要的操作。虽然知道目的和意思，但是实际写起来太难了，很多东西需要自己查wiki查手册，而且还查不到。根据课程网站的资料，首先修改kern/trapentry.S中的代码。
+
+\setmainfont{Consolas}
+\begin{lstlisting}[language={[x86masm]Assembler},firstnumber=1,title=kern/trapentry.c] 
+	pushl $GD_UD|3
+	pushl %ebp
+	pushfl
+	pushl $GD_UT|3
+	pushl %esi
+	pushl $0
+	pushl $0
+	pushl %ds
+	pushl %es
+	pushal
+	movw $GD_KD, %ax
+	movw %ax, %ds
+	movw %ax, %es
+	pushl %esp
+	call my_syscall
+	popl %esp
+	popal
+	popl %es
+	popl %ds
+	movl %ebp, %ecx
+	movl %esi, %edx
+	sysexit
+\end{lstlisting}
+\setmainfont[BoldFont=黑体]{宋体}
+
+这里完成了sysenter函数的入口，组织好了压栈的参数后call了my\_syscall函数，参数的组织结构参考Trapframe。my\_syscall函数定义在kern/syscall.c中，根据这里组织的参数直接调用kern/syscall.c中的syscall函数。my\_syscall就是简单的将最后1个参数补成0了，减少了我在汇编中组织参数的麻烦工作。
+
+当然首先lib/syscall需要支持sysenter，这一步很难写，好在网站上有参考用跳转来判断是否需要进入sysenter。
+
+我有一个疑问就是直接使用网站上的代码会提示我标签重复申明，但我去掉标签又提示找不到，最后我查看stackoverflow上的解决方法是使用local标签，分别使用1表示标签，1f表示跳转解决了这个问题。我也不知道为什么会说我重复标签申明。
+
+\setmainfont{Consolas}
+\begin{lstlisting}[language={[x86masm]Assembler},firstnumber=1,title=lib/syscall.c] 
+//Lab 3: Your code here
+				"movl %%esp,%%ebp\n\t"
+                 "leal 1f, %%esi\n\t"
+                 "sysenter\n\t"
+                 "1:\n\t"
+
+                 "popl %%edi\n\t"
+                 "popl %%esi\n\t"
+                 "popl %%ebp\n\t"
+                 "popl %%esp\n\t"
+                 "popl %%ebx\n\t"
+                 "popl %%edx\n\t"
+                 "popl %%ecx\n\t"
+                 
+                 : "=a" (ret)
+                 : "a" (num),
+                   "d" (a1),
+                   "c" (a2),
+                   "b" (a3),
+                   "D" (a4)
+                 : "cc", "memory");
+\end{lstlisting}
+\setmainfont[BoldFont=黑体]{宋体}
+
+在trap.init中也要申明下sysenter特例。这一步的wrmsr没按照要求写在inc/x86.h中，在这里用就在这个文件里写宏吧。
+
+\setmainfont{Consolas}
+\begin{lstlisting}[language={[x86masm]Assembler},firstnumber=1,title=kern/trap.c] 
+#define wrmsr(msr,val1,val2) \
+	__asm__ __volatile__("wrmsr" \
+	: \
+	: "c" (msr), "a" (val1), "d" (val2))
+\end{lstlisting}
+\setmainfont[BoldFont=黑体]{宋体}
+
+\setmainfont{Consolas}
+\begin{lstlisting}[language={C},firstnumber=1,title=kern/trap.c] 
+void
+trap_init(void)
+{
+    .....
+	// Per-CPU setup 
+	extern void sysenter_handler();
+	wrmsr(0x174, GD_KT, 0);
+   	wrmsr(0x175, KSTACKTOP, 0);
+	wrmsr(0x176, sysenter_handler, 0);
+
+
+	// Per-CPU setup 
+	trap_init_percpu();
+}
+\end{lstlisting}
+\setmainfont[BoldFont=黑体]{宋体}
+
+
+在进入了kern/syscall.c后，这里还需要判断syscallno，因此要写个路由。
+
+\setmainfont{Consolas}
+\begin{lstlisting}[language={C},firstnumber=1,title=kern/syscall.c] 
+int32_t syscall(uint32_t syscallno, uint32_t a1,
+uint32_t a2, uint32_t a3, uint32_t a4, uint32_t a5)
+{
+
+	switch (syscallno){
+		case SYS_getenvid:
+			return sys_getenvid();
+		case SYS_cputs:
+			sys_cputs((const char*) a1,a2);
+			return 0;
+		case SYS_cgetc:
+			return sys_cgetc();
+		case SYS_env_destroy:
+			return sys_env_destroy(a1);
+		case SYS_map_kernel_page:
+			return sys_map_kernel_page
+			((void *)a1, (void *)a2);
+		case SYS_sbrk:
+			return sys_sbrk(a1);
+		default:
+			return -E_INVAL;
+}
+\end{lstlisting}
+\setmainfont[BoldFont=黑体]{宋体}
+
+这里的SYS\_sbrk是后面的练习，因为我这部分的文档是在lab代码写完后写的，所以就把sbrk也当做写完了吧。
+
+最后这个通过了testbss，实在是艰难，这两个练习我搞了一整天，而且不写完这个前面的debug练习是无法exit的。
+
+\subsection{User-mode startup}
+exercise-8这个按照提示非常简单，这个sys\_getenvid的就在kern/syscall.c中，是一个syscall。
+
+在lib/libmain.c中添加一行代码修改下全局的thisenv即可。
+
+\setmainfont{Consolas}
+\begin{lstlisting}[language={C},firstnumber=1,title=lib/libmain.c]
+ thisenv = envs + ENVX(sys_getenvid());
+\end{lstlisting}
+\setmainfont[BoldFont=黑体]{宋体}
+
+exercise-9这个sbrk开始由于忘记搞syscall的路由导致一直返回-3，好在很快解决了。根据课程网站的提示，完成起来比较容易，比syscall跟debug简单多了。
+
+首先我在每个Env中加了一个变量用来保存当前分配到的虚拟空间栈的地址的底。
+
+\setmainfont{Consolas}
+\begin{lstlisting}[language={C},firstnumber=1,title=lib/libmain.c]
+
+struct Env {
+	......
+	
+	uint32_t env_va_bottom;
+	
+	......
+}
+\end{lstlisting}
+\setmainfont[BoldFont=黑体]{宋体}
+
+然后sys\_sbrk就根据保存的break开始分配inc个byte的栈空间即可，函数region\_alloc都写好了。我还修改了region\_alloc删掉了开头的static，让我能在其他文件中调用它。轻松通过测试。
+
+\setmainfont{Consolas}
+\begin{lstlisting}[language={C},firstnumber=1,title=kern/syscall.c]
+static int
+sys_sbrk(uint32_t inc)
+{
+	// LAB3: your code sbrk here...
+	region_alloc(curenv, (void*)(curenv->env_va_bottom - inc),
+	             inc);
+	return curenv->env_va_bottom;
+}
+\end{lstlisting}
+\setmainfont[BoldFont=黑体]{宋体}
+
+\subsection{Page faults and memory protection}
+
+首先资料介绍说明并且强调了user的page-fault和kernel的page-fault应该使用不同的处理方式，前者可以继续执行，认为只是user的process的错误，不会影响kernel，后者则认为是kernel错误，后果比较严重。
+
+首先在kern/trap.c中的page\_fault\_handler函数中，判断是否是kernel产生的page-fault，如果是，则panic。按照资料写，一句话判断。
+
+\setmainfont{Consolas}
+\begin{lstlisting}[language={C},firstnumber=1,title=kern/trap.c]
+void
+page_fault_handler(struct Trapframe *tf)
+{
+	......
+	if (!(tf->tf_cs & 0x3)) {
+		panic("kernel page fault");
+	}
+	......
+}
+\end{lstlisting}
+\setmainfont[BoldFont=黑体]{宋体}
+
+接下来进行user的page-fault判定，下面按层次介绍。
+
+首先是sys\_cputs函数，在kern/syscall中，在发生syscall中断后进入该函数判定user这个页操作是否允许，添加user\_mem\_assert的调用。
+
+\setmainfont{Consolas}
+\begin{lstlisting}[language={C},firstnumber=1,title=kern/syscall.c]
+static void
+sys_cputs(const char *s, size_t len)
+{
+	// Check that the user has permission to read memory [s, s+len).
+	// Destroy the environment if not.
+
+	// LAB 3: Your code here.
+	user_mem_assert(curenv, (void*)s, len, PTE_U | PTE_P);
+
+	// Print the string supplied by the user.
+	cprintf("%.*s", len, s);
+}
+\end{lstlisting}
+\setmainfont[BoldFont=黑体]{宋体}
+
+user\_mem\_assert函数在熟悉的kern/pmap.c中，调用user\_mem\_check判断是否是user process的page-fault，如果是，直接env\_destroy这个env。
+
+\setmainfont{Consolas}
+\begin{lstlisting}[language={C},firstnumber=1,title=kern/pmap.c]
+void
+user_mem_assert(struct Env *env, const void *va, size_t len, int perm)
+{
+	if (user_mem_check(env, va, len, perm | PTE_U) < 0) {
+		cprintf("[%08x] user_mem_check assertion failure for "
+			"va %08x\n", env->env_id, user_mem_check_addr);
+		env_destroy(env);	// may not return
+	}
+}
+\end{lstlisting}
+\setmainfont[BoldFont=黑体]{宋体}
+
+user\_mem\_check函数同样在kern/pmap.c中，判断下所调用的va是否越界，如果没有越界，再用pgdir\_walk函数判定页表中的情况，这样一层一层的设计十分巧妙但是复杂。最后，如果越界了，直接抛出-E\_FAULT，在上面的sys\_mem\_assert捕获到这个负的返回值后就直接消灭这个env了。
+
+\setmainfont{Consolas}
+\begin{lstlisting}[language={C},firstnumber=1,title=kern/pmap.c]
+int
+user_mem_check(struct Env *env, const void *va, size_t len, int perm)
+{
+	// LAB 3: Your code here.
+	uintptr_t lva = (uintptr_t) va;
+	uintptr_t rva = (uintptr_t) va + len - 1;
+	uintptr_t idx;
+	pte_t *pte;
+	perm |= PTE_U | PTE_P;
+
+	for (idx = lva; idx <= rva; idx = ROUNDDOWN(idx+PGSIZE, PGSIZE)) {
+		if (idx >= ULIM) {
+			user_mem_check_addr = idx;
+			return -E_FAULT;
+		}
+		pte = pgdir_walk (env->env_pgdir, (void*)idx, 0);
+		if (pte == NULL || (*pte & perm) != perm) {
+			user_mem_check_addr = idx;		
+			return -E_FAULT;
+		}
+	}
+	return 0;
+}
+\end{lstlisting}
+\setmainfont[BoldFont=黑体]{宋体}
+
+最后还要再kern/kdebug.c的debuginfo\_eip函数中调用下user\_mem\_check函数在debug调用该函数的时候同样判断下是否user越界。
+
+随后在breakpoint进程中使用lab1写的backtrace操作确实产生了user态的page-fault。evilhello进程使用了sys\_cputs调用了该进程不能访问的kernel中的部分，同样产生了user态的page-fault，env被杀死。
+
+exercise-10和11 pass。
+
+exercise-12又要做hacker了，这个练习分别在0和3的权限下调用了接触kernel内存部分的代码，当然在0下会执行在3下会user page-fault，需要我们实现如何进入0权限下后调用evil函数。知道了目的，要做的就是如何hack kernel了，hacking to the gate!
+
+根据提示，先使用汇编的sgdt命令读取gdt的内容，通过sys\_map\_kernel\_page将这块映射到user态创建的一块内存空间vaddr中。如下ring0\_call函数的第3到8行。然后根据创建的vaddr，得到entry的位置。在改gdt之前先保存下以便恢复，然后第18行很hack的修改gdt，19行调用进入0权限并且进入call\_fun\_ptr包装函数，此时处于0权限下，调用evil函数，kernel态当然能直接搞0xF0000000以上的空间。最后恢复保存的gdt并且返回。
+
+\setmainfont{Consolas}
+\begin{lstlisting}[language={C},firstnumber=1,title=user/evilhello2.c]
+void ring0_call(void (*fun_ptr)(void)) {
+    struct Pseudodesc r_gdt; 
+	get_gdt(&r_gdt);
+
+	int t = sys_map_kernel_page((void* )r_gdt.pd_base, (void* )vaddr);
+	if (t < 0) {
+		cprintf("ring0_call: sys_map_kernel_page failed, %e\n", t);
+	}
+
+	uint32_t base = (uint32_t)(PGNUM(vaddr) << PTXSHIFT);
+	uint32_t index = GD_UD >> 3;
+	uint32_t offset = PGOFF(r_gdt.pd_base);
+
+	gdt = (struct Segdesc*)(base+offset); 
+	entry = gdt + index; 
+	oldold = *entry; 
+
+	SETCALLGATE(*((struct Gatedesc*)entry), GD_KT, call_fun_ptr, 3);
+	asm volatile("lcall $0x20, $0");
+}
+\end{lstlisting}
+\setmainfont[BoldFont=黑体]{宋体}
+
+\setmainfont{Consolas}
+\begin{lstlisting}[language={C},firstnumber=1,title=user/evilhello2.c]
+void call_fun_ptr()
+{
+	evil();  
+	*entry = old;  
+	asm volatile("popl %ebp");
+	asm volatile("lret");	
+}
+\end{lstlisting}
+\setmainfont[BoldFont=黑体]{宋体}
+
+说句题外话，如果kernel要解决这种漏洞，我觉得关键是在user态不能随意调用sys\_map\_kernel\_page操作，应该增加user态的判断是否超出user能够使用的范围。这样能够接触kernel态的东西并且随便映射和直接接触kernel态的才能使用的空间没有任何区别。当然我不能修复这个漏洞，不然我lab怎么pass得分。
+
+\section{总结}
+
+这个lab的难度明显比lab1和lab2难，我从星期四晚上写到第二个星期的星期一上午才写完，包括文档和answer估测25到30小时，挖坑无数。因为还要准备GRE，如果后面的lab5,lab6也是这个难度我可能要权衡下时间问题了T\_T。
+
+\end{document}
+

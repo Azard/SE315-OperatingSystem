@@ -1,0 +1,1013 @@
+\documentclass[11pt,a4paper]{article} 
+
+%=================宏包=================
+\usepackage{fontspec}
+\usepackage{xltxtra}
+\usepackage{xcolor}
+\usepackage{listings}
+\usepackage[colorlinks,linkcolor=black,anchorcolor=black,citecolor=black]{hyperref}
+\usepackage{cite}
+\usepackage{indentfirst}
+\usepackage{graphicx}
+\usepackage{fancyhdr}
+\usepackage{setspace}
+
+
+
+%=================字体=================
+\setmainfont[BoldFont=黑体]{宋体}
+\setsansfont{宋体} 
+\setmonofont{宋体}
+
+%=================字号=================
+\newcommand{\chuhao}{\fontsize{42pt}{\baselineskip}\selectfont}
+\newcommand{\xiaochuhao}{\fontsize{36pt}{\baselineskip}\selectfont}
+\newcommand{\yihao}{\fontsize{28pt}{\baselineskip}\selectfont}
+\newcommand{\erhao}{\fontsize{21pt}{\baselineskip}\selectfont}
+\newcommand{\xiaoerhao}{\fontsize{18pt}{\baselineskip}\selectfont}
+\newcommand{\sanhao}{\fontsize{15.75pt}{\baselineskip}\selectfont}
+\newcommand{\sihao}{\fontsize{14pt}{\baselineskip}\selectfont}
+\newcommand{\xiaosihao}{\fontsize{12pt}{\baselineskip}\selectfont}
+\newcommand{\wuhao}{\fontsize{10.5pt}{\baselineskip}\selectfont}
+\newcommand{\xiaowuhao}{\fontsize{9pt}{\baselineskip}\selectfont}
+\newcommand{\liuhao}{\fontsize{7.875pt}{\baselineskip}\selectfont}
+\newcommand{\qihao}{\fontsize{5.25pt}{\baselineskip}\selectfont}
+
+%=================section=================
+\makeatletter
+\renewcommand\section{\@startsection{section}{1}{\z@}%
+{-1.5ex \@plus -.5ex \@minus -.2ex}%
+{.5ex \@plus .1ex}%
+{\normalfont\sanhao\fontspec{黑体}}}
+\makeatother
+
+%=================subsection=================
+\makeatletter
+\renewcommand\subsection{\@startsection{subsection}{1}{\z@}%
+{-1.25ex \@plus -.5ex \@minus -.2ex}%
+{.4ex \@plus .1ex}%
+{\normalfont\sihao\fontspec{黑体}}}
+\makeatother
+
+%=================subsubsection=================
+\makeatletter
+\renewcommand\subsubsection{\@startsection{subsubsection}{1}{\z@}%
+{-1ex \@plus -.5ex \@minus -.2ex}%
+{.3ex \@plus .1ex}%
+{\normalfont\xiaosihao\fontspec{黑体}}}
+\makeatother
+
+%=================段落缩进=================
+\makeatletter
+\let\@afterindentfalse\@afterindenttrue
+\@afterindenttrue
+\makeatother
+\setlength{\parindent}{2em}  %中文缩进两个汉字位
+
+
+%=================页面边距=================
+\addtolength{\topmargin}{-54pt}
+\setlength{\oddsidemargin}{0.63cm}  % 3.17cm - 1 inch
+\setlength{\evensidemargin}{\oddsidemargin}
+\setlength{\textwidth}{14.66cm}
+\setlength{\textheight}{24.00cm}    % 24.62
+
+%=================页眉=================
+\pagestyle{fancy}\lhead{JOS-Lab4}\rhead{\fontspec{宋体}熊伟伦，5120379076}
+
+%=================段落=================
+\setlength{\parskip}{0.5\baselineskip}
+\XeTeXlinebreaklocale "zh"                      % 针对中文进行断行
+\XeTeXlinebreakskip = 0pt plus 1pt minus 0.1pt  % 给予TeX断行一定自由度
+\linespread{1.4}                                % 1.4倍行距
+
+%=================代码=================
+\lstset{
+	basicstyle=\linespread{1.0}\small,
+	aboveskip=-10ex,
+	stringstyle=\ttfamily,
+	keywordstyle=\color{blue}\bfseries,
+	commentstyle=\color[RGB]{0,96,96},
+	backgroundcolor=\color[rgb]{0.95,1.0,1.0},
+	numbers=left,
+	frame={trBL},
+	frameround={fttt},
+	xleftmargin=2em,
+	xrightmargin=2em,
+	aboveskip=1em,
+	tabsize=4
+}
+
+
+\begin{document}
+
+\title{\xiaochuhao{JOS-Lab-4 实验报告}}
+\author{\sanhao{熊伟伦}\\\sanhao{5120379076}\\\sanhao{azardf4yy@gmail.com}}
+\date{\sanhao{2014年11月15日-11月23日}}
+\maketitle
+\tableofcontents
+\newpage
+
+\section{前言}
+
+该报告描述了我在lab4实验的过程中遇到的问题与解决的方法，介绍了lab4的整体结构。指导中问题的解答参考上传的压缩包中的answers-lab4.txt文件
+
+\subsection{关于user/primes.c超时}
+
+经过我后来跑成绩脚本，发现原本的grade脚本设置的30秒内我跑primes只能跑到1400多，无法到1887，所以我把time out修改成了40，实际上大概需要33秒左右才能到，一个原因可能是我虚拟机的速度问题，还有部分原因是我的代码实现的效率问题。
+
+\subsection{关于ticket spinlock}
+
+使用ticket\_spinlock后在之后的stresssched, pingpong和primes中，由于耗时太长导致测试失败。因此我提交和自己测分的时候都把这个关掉了。助教可以看代码判断我的ticket spinlock是否正确（参考文档2.4节的exercise-4.1，代码很少），也可以在spinlock.h中\#define一下跑下grade，最后几个测试会超时跑不出，但前面的测试都是正确的，由此足以证明\color{red}我的ticket spinlock写的是没有问题的\color{black}。
+
+\subsection{关于Challenge}
+
+Challenge我做了优先级调度那个，可以参考文档的第6章Challenge。
+
+如果助教老师需要跑这个Challenge，需要根据第6章的说明注释替换2个文件的部分代码，分别是kern/sched.c里的部分和kern/init.c里的部分，在文档第6章有说明，代码中有注释标注。
+
+\section{Part A: Multiprocessor Support and Cooperative Multitasking}
+
+\subsection{Multiprocessor Support}
+
+这里介绍了下几个概念，包括SMP，然后核又分为1个BSP和若干个APs，由硬件和BIOS决定哪个核是BSP。在SMP策略下，每个核都有一个LAPIC，这个单元负责传递终端给system，并且保存了每个核唯一的识别符。这个Lab又使用了若干个LAPIC的功能，包括获取进程使用的是哪个核，BSP发中断给APs开启其他的核，以及在Part C实现的时钟中断。
+
+每个核通过MMIO实现LAPIC，对应于虚拟内存最顶上的32个MB。
+
+\subsection{Application Processor Bootstrap}
+
+首先BSP通过mp\_init函数获取BIOS中保留的所有核的信息。
+
+kern\_init.c里的boot\_aps函数一个一个boot所有的APs核，先从mpentry.S里copy启动代码到MP\_ENTRYPADDR，然后调用lapic\_starap函数启动核，然后进入kern\_lapic.c中的该函数，此时是AP核，会调用开始copy的汇编代码，汇编代码中call mp\_main，mp\_main结束后会修改这个核的cpu\_status，此时BSP核运行的boot\_aps循环读取cpu\_status获知这个AP核boot好了继续boot下一个核。
+
+\color{red}Exercise-1:\color{black}这个练习看起来很明确，就是之前默认MP\_ENTRY，也就是0x7000处不能分配，因为用于APs的boot的汇编代码的保存了。
+
+根据lab1中的npages\_basemem，0x7000应该在其之前，实际上是第7个Page，然后看那个汇编代码的大小应该是小于1个Page的，所以把这个page从freelist中排除应该就好了。
+
+因此简单的修改下代码
+
+\setmainfont{Consolas}
+\begin{lstlisting}[language={C},firstnumber=1,title=kern/pmap.c] 
+uint32_t page_mp_entry = MPENTRY_PADDR / PGSIZE;
+for (i = 1; i < npages_basemem && 
+     i != page_mp_entry; i++) {
+    ......     
+}
+\end{lstlisting}
+\setmainfont[BoldFont=黑体]{宋体}
+
+如上，算出MPENTRY\_PADDR的页(显然是7)，然后在循环加入free\_list的判断中去除掉该页即可。此时make qemu一下通过了check\_page\_free\_list，死在了check\_kern\_pgdir中，根据课程网站资料应该是没有问题的，ok。
+
+Question-1是关于直接使用物理地址和BSP进入了Kernel之后其他的AP需要使用地址减去KERNBASE的问题，参见answers-lab4.txt文件答案。
+
+\subsection{Per-CPU State and Initialization}
+
+这里先告诉我每个CPU struct的索引方式，它的栈在memlayout.h里面定义，每个Cpu的栈大小是8个PGSIZE，按顺序在KSTACKTOP下面，每个CPU的栈中间有Gap保护间隔开。每个CPU的TSS用于保存kernel stack的状态，Taskstate定义在inc/mmu.h里。curenv对应每个CPU各一个，每个CPU的寄存器独立，
+
+\color{red}Exercise-2:\color{black}练习2也是看起来不难的，按部就班的做就是，在kern/pmap.c的mem\_init\_mp函数中，循环调用boot\_map\_region就是。
+
+\setmainfont{Consolas}
+\begin{lstlisting}[language={C},firstnumber=1,title=kern/pmap.c] 
+uint32_t i;
+uint32_t per_stack_top = KSTACKTOP - KSTKSIZE;
+for (i = 0; i < NCPU; i++) {
+	boot_map_region(kern_pgdir, per_stack_top, KSTKSIZE, 
+					PADDR(percpu_kstacks[i]), PTE_P | PTE_W );
+	per_stack_top -= KSTKSIZE + KSTKGAP;
+}
+\end{lstlisting}
+\setmainfont[BoldFont=黑体]{宋体}
+
+比较有趣的是原来的percpu\_kstacks每个间隔8个PGSIZE，映射的虚拟地址每个间隔16个PGSIZE因为中间有没有映射的8个PGSIZE大小的GAP进行保护。
+
+\color{red}Exercise-3:\color{black}在函数trap\_init\_percpu中，将原来的ts全部换成this->cpu\_ts，某些地方加上cpu\_id相关的偏移量。除此之外，由于坑爹的Lab3里添加了sysenter进行中断，在此进行5~8行的wrmsr指令功能的开启初始化，当然，可以在外部BSP循环调用APs初始化的时候就调用该指令，但以防万一，多写一次也不会出问题。
+
+\setmainfont{Consolas}
+\begin{lstlisting}[language={C},firstnumber=1,title=kern/trap.c] 
+uint32_t i = thiscpu->cpu_id;
+thiscpu->cpu_ts.ts_esp0 = KSTACKTOP-i*(KSTKSIZE+KSTKGAP);
+thiscpu->cpu_ts.ts_ss0 = GD_KD;
+
+extern void sysenter_handler();
+wrmsr(0x174, GD_KT, 0);
+wrmsr(0x175, thiscpu->cpu_ts.ts_esp0, 0);
+wrmsr(0x176, sysenter_handler, 0);
+	
+gdt[(GD_TSS0 >> 3)+i] = SEG16(STS_T32A, (uint32_t)(&thiscpu->cpu_ts),
+					sizeof(struct Taskstate), 0);
+gdt[(GD_TSS0 >> 3)+i].sd_s = 0;
+	
+ltr(GD_TSS0+(i << 3));
+lidt(&idt_pd);
+\end{lstlisting}
+\setmainfont[BoldFont=黑体]{宋体}
+
+值得注意的是最后的ltr指令后3位保留所以i左移3位符合意义。随后make qemu-nox CPUS=4后输出正常，与网站资料一致。
+
+\subsection{Locking}
+
+\color{red}Exercise-4:\color{black}这里根据上面的提示，按部就班添加几行函数调代码就不贴了。但是还是由于坑爹的Lab3需要完成的sysenter功能，而且我还在syscall.c中使用了个包装函数my\_syscall()，因此在中断进入这里的时候我开始没有lock，导致我调试调了一整天！！！整整一整天！！！都是泪，在my\_syscall()也加上lock\_kernel()后才能正常通过exercise-5，这里太坑了，而且还影响到我exercise-5的调度测试，这里太难调试了，我一句一句cprintf跟踪调试再和其他同学的输出结果对比才看出是这个包装函数没有加锁，都是泪。
+完成了这个后make qemu-nox会卡在后面，因为我没有完成sched\_yield函数。
+
+\color{red}Exercise-4.1:\color{black}首先我查看了下ticket spinlock的意义和说明（参考http://www.ibm.com/developerworks/cn/linux/l-cn-spinlock/）。
+
+理解了之后这个ticket spinlock还是很容易的，首先我在holding中使用判断own和next是否相等判断是否加了锁，如果相等此时没加锁，同时如果lock->cpu == thiscpu的话说明是该CPU加了锁，其实去掉前面一个条件同样是成立的，因为后面的条件的更新蕴含了前面的条件，但都协商也无妨。
+
+\setmainfont{Consolas}
+\begin{lstlisting}[language={C},firstnumber=1,title=kern/spinlock.c] 
+static int
+holding(struct spinlock *lock)
+{
+#ifndef USE_TICKET_SPIN_LOCK
+	return lock->locked && lock->cpu == thiscpu;
+#else
+	//LAB 4: Your code here
+	//panic("ticket spinlock: not implemented yet");
+	return lock->own != lock->next && lock->cpu == thiscpu;
+
+#endif
+}
+\end{lstlisting}
+\setmainfont[BoldFont=黑体]{宋体}
+
+随后在spin\_initlock函数里面，按照定义将own和next初始化为0，表示票号从0开始。
+
+\setmainfont{Consolas}
+\begin{lstlisting}[language={C},firstnumber=1,title=kern/spinlock.c] 
+void
+__spin_initlock(struct spinlock *lk, char *name)
+{
+#ifndef USE_TICKET_SPIN_LOCK
+	lk->locked = 0;
+#else
+	//LAB 4: Your code here
+	lk->own = 0;
+	lk->next = 0;
+#endif
+}
+\end{lstlisting}
+\setmainfont[BoldFont=黑体]{宋体}
+
+在比较关键的spin\_lock中，参考下面的第15到20行，获得锁的时候先原子性的增加next，然后得到增加前的返回值。然后无限自旋直到own的值等于得到的票号，此时认为该CPU获得该锁，符合ticket spinlock的定义。
+
+\setmainfont{Consolas}
+\begin{lstlisting}[language={C},firstnumber=1,title=kern/spinlock.c] 
+void
+spin_lock(struct spinlock *lk)
+{
+#ifdef DEBUG_SPINLOCK
+	if (holding(lk))
+		panic("CPU %d cannot acquire %s: already holding",
+				cpunum(), lk->name);
+#endif
+
+#ifndef USE_TICKET_SPIN_LOCK
+	while (xchg(&lk->locked, 1) != 0)
+		asm volatile ("pause");
+#else
+	//LAB 4: Your code here
+	uint32_t get_ticket = 0;
+	get_ticket = atomic_return_and_add(&(lk->next), 1);
+	while(1) {
+		if (get_ticket == lk->own)
+			break;
+	}
+
+#endif
+
+#ifdef DEBUG_SPINLOCK
+	lk->cpu = thiscpu;
+	get_caller_pcs(lk->pcs);
+#endif
+}
+\end{lstlisting}
+\setmainfont[BoldFont=黑体]{宋体}
+
+之后的spin\_unlock只需要加下面一条指令即可，原子性的给own增加1，这样拿到了下一个票的CPU在自旋的时候会判断到own等于自己的ticket从而执行接下来的命令。
+
+\setmainfont{Consolas}
+\begin{lstlisting}[language={C},firstnumber=1,title=kern/spinlock.c] 
+//LAB 4: Your code here
+atomic_return_and_add(&(lk->own), 1);
+\end{lstlisting}
+\setmainfont[BoldFont=黑体]{宋体}
+
+PS:在之后的stresssched和primes的测试中，由于太慢测试无法通过，因此我注释掉了\#define跑整个grade。我觉得主要原因是相比于普通的spinlock，ticket spinlock由于有固定的顺序导致锁的切换实际上是更慢的，而这两个测试创建子线程又频繁的sched\_yield因此就更慢了，票太多，每次还会执行小一段时间，因此超时。
+
+\subsection{Round-Robin Scheduling}
+
+\color{red}Exercise-5:\color{black}这里终于要实现sched了，不实现这个前面都没办法测，当然我是写完了整个Part A再开始写Part A的文档的。
+
+这里稍微有个问题是对于之前init.c里面BSP创建的IDLE进程，到底要不要在没有其他RUNNABLE进程的时候让CPU们都进入自己的ID作为index的IDLE ENV中无限sched\_yield()，因为这样做才能通过ticket\_spinlock\_test（因为进入monitor会获得lock其他在test函数中的CPU永远无法获得lock），但是这样又永远不能进入monitor，和题目描述中的：
+
+“After the yield programs exit, when only idle environments are runnable, the scheduler should invoke the JOS kernel monitor. If any of this does not happen, then fix your code before proceeding.”
+
+冲突，因此我按照题目exercise-5的描述最后会有一个CPU进入monitor，没有按照exercise-4.1中保证每个CPU测试通过spinlock\_test。但是这不代表我的ticket spinlock有问题，我的这个\color{red}ticket spinlock的实现是完全正确的\color{black}。(参考该文档1.2节和2.4节)
+
+\setmainfont{Consolas}
+\begin{lstlisting}[language={C},firstnumber=1,title=kern/sched.c] 
+void
+sched_yield(void)
+{
+	struct Env *idle;
+	int i;
+	
+	// LAB 4: Your code here.
+	uint32_t env_id;
+	if(curenv != NULL){
+		env_id = ENVX(curenv->env_id);
+		for(i = (env_id+1)%NENV; i != env_id;){
+			if(envs[i].env_status == ENV_RUNNABLE && 
+			   envs[i].env_type != ENV_TYPE_IDLE){
+				env_run(&envs[i]);
+			}
+			i = (i+1)%NENV;
+		}
+		if(curenv->env_status == ENV_RUNNING){
+			env_run(curenv);
+		}
+	}
+
+	for (i = 0; i < NENV; i++) {
+		if (envs[i].env_type != ENV_TYPE_IDLE &&
+		    (envs[i].env_status == ENV_RUNNABLE ||
+		     envs[i].env_status == ENV_RUNNING))
+			break;
+	}
+	if (i == NENV) {
+		cprintf("No more runnable environments!\n");
+		while (1)
+			monitor(NULL);
+	}
+
+	// Run this CPU's idle environment
+	// when nothing else is runnable.
+	idle = &envs[cpunum()];
+	if (!(idle->env_status == ENV_RUNNABLE 
+		|| idle->env_status == ENV_RUNNING))
+		panic("CPU %d: No idle environment!", cpunum());
+	env_run(idle);
+}
+\end{lstlisting}
+\setmainfont[BoldFont=黑体]{宋体}
+
+代码看似很长，但后面一部分是已经给好的代码，我把大部分注释删除了。
+
+按照上面贴的代码，在第11行的for循环，会每次增加env\_id并且模NENV，因此是个无限循环所有的ENV，当有一个ENV\_RUNNABLE并且不是ENV\_TYPE\_IDLE的ENV（参考上面的解释），会选择执行它，如果循环回自身了，判断原来的ENV是否是ENV\_RUNNING，是的话就env\_run(curenv)。后面的代码是自带的，不多加描述。
+
+这个练习远没有上面写的这么简单，在这里我又调试了很久，因为Lab3坑爹的int30和sysenter（参考exercise-4），都需要加锁，，一开始我都不知道我的shced\_yield是否写对了，因为我其他地方处理中断时候调用的lock，unlock，sched\_yield都写错了！感觉挖坑太深，自掘坟墓，积累的坑和bug越来越多，lab一个比一个难写，坑像滚雪球一样，扛不住了。
+
+\subsection{System Calls for Environment Creation}
+
+\color{red}Exercise-6:\color{black}接下来要实现JOS里的fork()操作，和Linux的fork()定义没有区别，fork()返回0给子进程，返回子进程的pid给父进程。
+
+首先是sys\_exofork()，主要就是父进程先给子进程创建一个Env结构，并且标记为不可执行，因为这个时候还没初始化完子进程。并且子进程的返回值是0，父进程的返回值是子进程的env\_id，这和定义一样，没什么好说的。
+
+\setmainfont{Consolas}
+\begin{lstlisting}[language={C},firstnumber=1,title=kern/syscall.c] 
+static envid_t
+sys_exofork(void)
+{
+	// LAB 4: Your code here.
+	//panic("sys_exofork not implemented");
+	struct Env *child_env;
+	int r;
+	r = env_alloc(&child_env, curenv->env_id);
+	if(r < 0)
+		return r;
+	child_env->env_tf = curenv->env_tf;
+	child_env->env_status = ENV_NOT_RUNNABLE;
+	(child_env->env_tf).tf_regs.reg_eax = 0;
+	return child_env->env_id;
+}
+\end{lstlisting}
+\setmainfont[BoldFont=黑体]{宋体}
+
+第二个实现的是sys\_env\_set\_status()，主要是设置子进程的状态是否可执行，就像函数名一样，没什么特别要说明的。
+
+\setmainfont{Consolas}
+\begin{lstlisting}[language={C},firstnumber=1,title=kern/syscall.c] 
+static int
+sys_env_set_status(envid_t envid, int status)
+{
+	// LAB 4: Your code here.
+	int r;
+	struct Env *e;
+	if ((r = envid2env(envid, &e, 1)) < 0)
+		return r;
+	if (status != ENV_RUNNABLE && status != ENV_NOT_RUNNABLE)
+		return -E_INVAL;
+	e->env_status = status;
+	return 0;
+}
+\end{lstlisting}
+\setmainfont[BoldFont=黑体]{宋体}
+
+第三个实现的是sys\_page\_alloc()，函数功能跟名字一样，给子进程分配物理页。由于函数上面的注释很详细了，一步一步按照注释做，就不多做说明了。
+
+\setmainfont{Consolas}
+\begin{lstlisting}[language={C},firstnumber=1,title=kern/syscall.c] 
+static int
+sys_page_alloc(envid_t envid, void *va, int perm)
+{
+	// LAB 4: Your code here.
+	int r;
+	struct Env *e;
+	struct Page *new_page;
+	if (va >= (void*)UTOP || 
+	    (perm & PTE_SYSCALL) != PTE_SYSCALL || 
+	    PGOFF(va)!= 0 || (perm & (~PTE_SYSCALL))!= 0)
+		return -E_INVAL;
+	r = envid2env(envid, &e, 1);
+	if (r < 0)
+		return -E_BAD_ENV;
+	new_page = page_alloc(ALLOC_ZERO);
+	if (!new_page)
+		return -E_NO_MEM;
+	r = page_insert(e->env_pgdir, new_page, va, perm);
+	if (r < 0) {
+		page_free(new_page);
+		return -E_NO_MEM;
+	}
+	memset(page2kva(new_page), 0, PGSIZE);  
+	return 0;
+}
+\end{lstlisting}
+\setmainfont[BoldFont=黑体]{宋体}
+
+第四个实现sys\_page\_map，实现共享地址映射的过程，和上面一个一样错误判断分支比较多比较烦，但是注释很详细。
+
+\setmainfont{Consolas}
+\begin{lstlisting}[language={C},firstnumber=1,title=kern/syscall.c] 
+static int
+sys_page_map(envid_t srcenvid, void *srcva,
+	     envid_t dstenvid, void *dstva, int perm)
+{
+	// LAB 4: Your code here.
+	int r;
+	pte_t *pte;
+	struct Env *env_s;
+	struct Env *env_d;
+	struct Page *p;
+	if (srcva >= (void *)UTOP || ROUNDUP(srcva,PGSIZE) != srcva ||
+		dstva >= (void *)UTOP || ROUNDUP(dstva,PGSIZE) != dstva )
+		return -E_INVAL;
+	if ((perm & PTE_SYSCALL) != PTE_SYSCALL)
+		return -E_INVAL;
+	if ((perm & (~PTE_SYSCALL)) != 0)
+		return -E_INVAL;
+	r = envid2env(srcenvid, &env_s, 1);
+	if (r < 0)
+		return -E_BAD_ENV;
+	r = envid2env(dstenvid, &env_d, 1);
+	if (r < 0)
+		return -E_BAD_ENV;
+	p = page_lookup(env_s->env_pgdir, srcva, &pte);
+	if (!p)
+		return -E_INVAL;
+	else if ((perm & PTE_W) != 0 && ((*pte) & PTE_W) == 0 )
+		return -E_INVAL;
+	r = page_insert(env_d->env_pgdir, p, dstva, perm);
+	if (r < 0)
+		return -E_NO_MEM;
+	return 0;
+}
+\end{lstlisting}
+\setmainfont[BoldFont=黑体]{宋体}
+
+最后一个要实现的是sys\_page\_unmap，故名思议和上面一个相反把映射解除掉，这个比较简短，错误判断少，而且还提示了调用page\_remove()。
+
+\setmainfont{Consolas}
+\begin{lstlisting}[language={C},firstnumber=1,title=kern/syscall.c] 
+static int
+sys_page_unmap(envid_t envid, void *va)
+{
+	// LAB 4: Your code here.
+	int r;
+	struct Env *e;
+	r = envid2env(envid, &e, 1);
+    if (r < 0)
+        return -E_BAD_ENV;  
+    if (va >= (void*)UTOP || ROUNDUP(va, PGSIZE) != va)
+		return -E_INVAL;
+    page_remove(e->env_pgdir, va);
+    return 0;
+}
+\end{lstlisting}
+\setmainfont[BoldFont=黑体]{宋体}
+
+这几个函数被后面大部分测试调用到，因此写错了很明显可以cprintf调试发现，会出现page\_fault或者直接panic。调试起来不是很难，但是工作量还是比较大的，毕竟这段代码不少。
+
+由于这是syscall，还需要在syscall里面的路由中添加对应的函数，这里返回值参考syscall.h的定义。这里参数错误会有明显的提示所以不会调试起来很坑。
+
+\setmainfont{Consolas}
+\begin{lstlisting}[language={C},firstnumber=1,title=kern/syscall.c] 
+case SYS_exofork:
+	return sys_exofork();
+case SYS_env_set_status:
+	return sys_env_set_status((envid_t) a1, (int) a2);
+case SYS_page_alloc:
+	return sys_page_alloc((envid_t) a1, (void *) a2, (int) a3);
+case SYS_page_map:
+	return sys_page_map((envid_t)*((uint32_t*)a1),
+					(void*)*((uint32_t*)a1+1), 
+					(envid_t)*((uint32_t*)a1+2),
+					(void*)*((uint32_t*)a1+3),
+					(int)*((uint32_t*)a1+4));
+case SYS_page_unmap:
+	return sys_page_unmap((envid_t) a1, (void *) a2);
+\end{lstlisting}
+\setmainfont[BoldFont=黑体]{宋体}
+
+这个时候make grade是可以通过part A拿到5分的，其中艰辛不言而喻，我就这5分做了整整一个周末+3天，泪流满面。
+
+\section{Part B: Copy-on-Write Fork}
+
+这里要实现的是一个Copy-on-Write Fork，也就是fork的时候不是真写，只有在用的时候再写，这个好像ICS中提到过有点印象。
+
+这样做的感觉是可以提高效率，就像作业拖到最后几天不得不做的时候效率就会很高，前面的时间可以尽情的玩耍，对应于计算机就是调用其他进程。
+
+这样的操作需要维护和判断的东西比较多，也比前面的fork要复杂的多的多，感觉这个Lab跟前面3个不是一个难度级别的。
+
+\subsection{User-level page fault handling}
+
+言归正传，因为很多子进程都不用父进程继承给它的资源，因此可以在fork子进程的时候可以只传递父进程资源的映射地址而不是值，使用子进程的时候再复制这些资源的值，这样如果子进程不使用这些资源的话就不会复制，提高效率。
+
+因为没有创建真正的值，子进程调用资源时候会产生page fault，在这时候再分配物理页并且拷贝资源，就是写时拷贝。
+
+\section{Setting the Page Fault Handler}
+
+\color{red}Exercise-7:\color{black}这个函数的功能是注册一个handle函数，在发生了pgfault的时候调用该函数处理，是实现整个过程的初始函数注册阶段。
+
+\setmainfont{Consolas}
+\begin{lstlisting}[language={C},firstnumber=1,title=kern/syscall.c] 
+static int
+sys_env_set_pgfault_upcall(envid_t envid, void *func)
+{
+	// LAB 4: Your code here.
+	struct Env *e;
+	int r;
+	r = envid2env(envid, &e, 1);
+	if(r < 0)
+		return -E_BAD_ENV;
+	e->env_pgfault_upcall = func;
+	return 0;	
+}
+\end{lstlisting}
+\setmainfont[BoldFont=黑体]{宋体}
+
+代码如上所示，比较简短，就是先获取对应的envid的struct Env，然后将handle函数赋给它的env\_pgfault\_upcall指针。当然这里还需要处理envid2env失败的情况。
+
+\subsection{Normal and Exception Stacks in User Environments}
+
+这里说明了一个用户异常栈，在UXSTACKTOP下的一个PGSIZE，也解答了我从Lab1就开始的疑问。也就是用户自己定义的中断handle函数使用的栈空间，属于user mode。
+
+这个问题恰好在我上周面试ipads实验室的时候夏老师问过，早点做就好了，当时回答的不是很清楚。首先发生page fault的时候会进入内核，内核会路由到用户设定的handle函数；然后进入用户的handle函数，handle函数会再UXSTACK中压Trapframe保存异常之前的状态；此时handle函数开始执行，也是在用户异常栈里执行；handle函数执行完毕之后，切换回用户的运行栈，此时重新回到user mode。
+
+\subsection{Invoking the User Page Fault Handler}
+
+\color{red}Exercise-8:\color{black}接下来需要真正实现这个handle函数，这个函数需要完成上面描述的如下功能：
+
+1.先判断handle函数的处理空间是否存在，不存在就destroy env。 2.压入当前状态信息Trapeframe入异常栈。3.迭代得产生page fault，可能会重复调用pafault\_handler进行处理。
+
+这个函数的处理比较复杂的地方是要判断用户异常栈是否存在已保存的数据，需要往栈下走，这里需要判断一下，先上代码。
+
+\setmainfont{Consolas}
+\begin{lstlisting}[language={C},firstnumber=1,title=kern/syscall.c] 
+void
+page_fault_handler(struct Trapframe *tf)
+{
+	uint32_t fault_va;
+	fault_va = rcr2();
+	// LAB 3: Your code here.
+	if (!(tf->tf_cs & 0x3)) {
+		panic("kernel page fault");
+	}
+
+	// LAB 4: Your code here.
+	void* upcall = curenv->env_pgfault_upcall;
+	if (curenv->env_pgfault_upcall == NULL) {
+		// Destroy the environment that caused the fault.
+		cprintf("[%08x] user fault va %08x ip %08x\n",
+		curenv->env_id, fault_va, tf->tf_eip);
+		print_trapframe(tf);
+		env_destroy(curenv);
+	} 
+	struct UTrapframe *uptf;
+	uint32_t trap_esp = tf->tf_esp;
+	uint32_t utsize = sizeof(struct UTrapframe);
+	if ((trap_esp>=UXSTACKTOP-PGSIZE) && (trap_esp<UXSTACKTOP))
+		uptf = (struct UTrapframe*)(trap_esp-utsize-4);
+	else 
+		uptf = (struct UTrapframe*)(UXSTACKTOP-utsize);
+	user_mem_assert(curenv, (void*)uptf,utsize, PTE_U | PTE_W);
+	uptf->utf_esp = tf->tf_esp;
+	uptf->utf_eflags = tf->tf_eflags;
+	uptf->utf_eip = tf->tf_eip;
+	uptf->utf_regs = tf->tf_regs;
+	uptf->utf_err = tf->tf_err;
+	uptf->utf_fault_va = fault_va;
+	curenv->env_tf.tf_eip = (uint32_t)curenv->env_pgfault_upcall;
+	curenv->env_tf.tf_esp = (uint32_t)uptf;
+	env_run(curenv);
+}
+\end{lstlisting}
+\setmainfont[BoldFont=黑体]{宋体}
+
+这里的注释比较详细，我在pdf里删除掉了。首先在第13行判断是否设置handle，如果没有就直接destroy env，简单粗暴。
+
+如果设置了handle则继续后面的处理，在第23行需要判断esp在栈的位置，从而写在异常栈的不同地方，之后复制原来的信息，保存状态信息，然后继续env\_run。
+
+如果异常栈满了，我看好像这个JOS Lab中没有任何地方让我们处理这种情况，应该会直接崩盘。可以限制一下用户异常handle的最大迭代数解决这个问题。
+
+\subsection{User-mode Page Fault Entrypoint}
+
+\color{red}Exercise-9:\color{black}汇编写起来比较棘手，我承认借助了一些帮助才能写这个汇编代码。
+
+\setmainfont{Consolas}
+\begin{lstlisting}[language={C},firstnumber=1,title=lib/pfentry.c] 
+// LAB 4: Your code here.
+movl 0x30(%esp), %eax   // get old esp
+movl 0x28(%esp), %ebx	// get old eip
+subl $0x4, %eax			// sub esp so when pop we get
+						// didn't change the esp behavior
+movl %ebx, (%eax)		// move old eip to reserved space
+
+movl %eax, 0x30(%esp)	//push oldesp-4 back
+// Restore the trap-time registers.  After you do this, you
+// can no longer modify any general-purpose registers.
+// LAB 4: Your code here.
+addl $0x8, %esp
+popal
+	
+// Restore eflags from the stack.  After you do this, you can
+// no longer use arithmetic operations or anything else that
+// modifies eflags.
+// LAB 4: Your code here.
+addl $0x4, %esp
+popfl
+// Switch back to the adjusted trap-time stack.
+// LAB 4: Your code here.
+popl %esp
+	
+// Return to re-execute the instruction that faulted.
+// LAB 4: Your code here.
+ret
+\end{lstlisting}
+\setmainfont[BoldFont=黑体]{宋体}
+
+这里涉及到了用户异常栈的递归调用，如果是第一次调用就直接接着UXSTACKTOP，因为old-esp指向的是用户正常的运行栈而不是异常栈。但如果是递归调用的话old-esp指向的应该是上一次的异常栈。具体每行代码上面的代码中有注释。
+
+\color{red}Exercise-10:\color{black}这里再包装一下exercise-7中实现的函数，用于真正的调用。这里先判断handler函数有没有注册，如果没有就分配一块空间给它。就在异常栈下面的一个PGSIZE。
+
+\setmainfont{Consolas}
+\begin{lstlisting}[language={C},firstnumber=1,title=lib/pgfault.c]
+void
+set_pgfault_handler(void (*handler)(struct UTrapframe *utf))
+{
+	int r;
+	if (_pgfault_handler == 0) {
+		// First time through!
+		// LAB 4: Your code here.
+		r = sys_page_alloc(0, (void*)(UXSTACKTOP-PGSIZE),
+						   PTE_U | PTE_P | PTE_W);
+		if(r < 0)
+			panic("set_pgfault_handler %e\n",r);
+		sys_env_set_pgfault_upcall(0, _pgfault_upcall);
+	}
+	_pgfault_handler = handler;
+}
+\end{lstlisting}
+\setmainfont[BoldFont=黑体]{宋体}
+
+接下来执行test，有的是故意page fault的test比如deadbeef，这个测试我在sys\_page\_alloc在被sysenter调用的时候才发现栈组织有问题我调试了好久。在这些test里加了些cprintf用于调试，老实exercise-9我确实写不出来，因为当时我稍微理解有偏差然后调试根本调不动，这个Lab难就难在调试太难了，又有中断，又是多核同时cprintf，很难分辨究竟是哪里的问题。
+
+\subsection{Implementing Copy-on-Write Fork}
+\color{red}Exercise-11:\color{black}
+接下来完成fork，这个fork和前面part A完成的fork的流程有一部分是相似的。
+
+fork函数首先在下面代码所示的第8行调用set\_pgfault\_handler函数将page fault的handle设置成自己定义的函数，随后在第10行调用sys\_exofork创建子进程。11到17行进行错误判断处理。
+
+接下来的循环是在父进程中进行的，遍历UTOP一下的空间，调用duppage函数映射到子进程并标记为写时复制。需要注意的是19行判断UXSTACK所在的PGSIZE空间是不能被映射的。
+
+随后父进程还需要给子进行分配一个PGSIZE的空间给用户异常栈作为起始使用，并且每个接下来调用的syscall都进行下错误处理增强鲁棒性，也便与调试。
+
+\setmainfont{Consolas}
+\begin{lstlisting}[language={C},firstnumber=1,title=lib/fork.c]
+envid_t
+fork(void)
+{
+	// LAB 4: Your code here.
+	extern void _pgfault_upcall (void);
+	int r;
+	int pno;
+	set_pgfault_handler(pgfault);
+	envid_t childid;
+	childid = sys_exofork();
+	if (childid < 0) {
+		panic("fork error:%e",childid);
+	}
+	else if (childid == 0) {
+		thisenv = &envs[ENVX(sys_getenvid())];
+		return 0;
+	}
+	for (pno = UTEXT/PGSIZE; pno < UTOP/PGSIZE; pno++) {
+		if (pno == (UXSTACKTOP-PGSIZE) / PGSIZE)
+			continue;
+		if (((vpd[pno/NPTENTRIES] & PTE_P) != 0) && 
+			((vpt[pno] & PTE_P) != 0) && 
+			((vpt[pno] & PTE_U) != 0)) {
+			duppage(childid, pno);
+		}
+	}
+	r = sys_page_alloc(childid,
+			(void *)(UXSTACKTOP-PGSIZE),
+			PTE_U|PTE_W|PTE_P);
+	if(r < 0)
+		panic("[lib/fork.c fork]: exception stack error %e\n",r);	
+	r = sys_env_set_pgfault_upcall(childid,
+					(void *)_pgfault_upcall);
+	if(r < 0)
+		panic("[lib/fork.c fork]: pgfault_upcall error %e\n",r);
+	r = sys_env_set_status(childid,ENV_RUNNABLE);
+	if(r < 0)
+		panic("[lib/fork.c fork]: status error %e\n",r);
+	return childid;
+}
+\end{lstlisting}
+\setmainfont[BoldFont=黑体]{宋体}
+
+duppage函数完成子进程到父进程的PAGE的映射和标记为写时复制的flag，其余的都是错误处理。
+
+而pagafault函数是给fork函数进行handler绑定的，这个函数的原理和作用开始分析过了。这两个函数理解起来不是很困难，因此我就没有贴代码，可以在lib/fork.c里进行查看。
+
+此时make grade一下part B的测试可以全部通过。
+
+\section{Part C: Preemptive Multitasking and Inter-Process communication (IPC)}
+
+Part-C主要实现时钟中断，抢占式调度和进程间的通信。
+
+有一些进程占用的时间很长，甚至是恶意进程永远不会sched\_yield()或者退出，会大量占用CPU的时间，因此需要kernel有权限能够强行sched进程，这个时候就需要时钟中断，每隔一段时间进行一次中断强行切换进程。
+
+\subsection{Interrupt discipline}
+
+\color{red}Exercise-12:\color{black}外部中断缩写成IRQ，一共16个对应编号就是IRQ0到IRQ15，对应在IDT中是32到47，时钟中断就是IRQ0也就是IDT的32。
+
+还记得在Lab1的boot的时候首先要做的就是屏蔽外部中断，现在需要开启外部中断，需要eflags寄存器的FL\_LF位开启就开启了外部中断。
+
+和Lab3的中断一样，添加IRQ首先需要在kern/trapentry.S中注册对应的中断和handle函数名。然后在kern/trap.c的trap\_init()函数中也同样模仿Lab3的做法先extern函数，然后调用SETGATE绑定。这里代码都比较单调我就不贴了。
+
+\subsection{Handling Clock Interrupts}
+
+\color{red}Exercise-13:\color{black}按照课程网站的资料，首先需要在i386init里调用lapic\_init和pic\_init函数，已经给我们写好了。
+
+此时还没有路由发生了IRQ0也就是time中断的处理，因此在kern/trap.c的trap\_dispatch()函数中路由这个case。
+
+\setmainfont{Consolas}
+\begin{lstlisting}[language={C},firstnumber=1,title=kern/trap.c]
+case IRQ_OFFSET+IRQ_TIMER:
+	lapic_eoi();
+	sched_yield();
+	return;
+\end{lstlisting}
+\setmainfont[BoldFont=黑体]{宋体}
+
+这样简单的处理了下之后，make grade能通过课程网站上说的测试，与其行为相符合。
+
+\subsection{Inter-Process communication (IPC)}
+
+接下来是这个Lab最后的一部分了，需要实现进程间的通信也就是IPC。
+
+主要需要实现2个syscall，sys\_ipc\_recv和sys\_ipc\_try\_send和他们的包装函数ipc\_recv和ipc\_sned。根据课程网站的资料，JOS里的IPC可以使用一个32位的value或者一个PGSIZE。
+
+进行syscall调用sys\_ipc\_recv，该进程停止在那里等待消息，消息到了才继续执行，否则就卡在那，此时任何进程都可以调用sys\_ipc\_send对等待消息的进程发送消息。同时调用send的进程也会不断卡在那里知道发送成功。
+
+\subsection{Implementing IPC}
+
+\color{red}Exercise-14:\color{black}
+首先不要忘记了在syscall里添加路由。
+
+\setmainfont{Consolas}
+\begin{lstlisting}[language={C},firstnumber=1,title=kern/syscall.c]
+case SYS_ipc_recv:
+	return sys_ipc_recv((void*)a1);
+case SYS_ipc_try_send:
+	return sys_ipc_try_send((envid_t)a1, a2, (void*)a3, (int)a4);
+\end{lstlisting}
+\setmainfont[BoldFont=黑体]{宋体}
+
+sys\_ipc\_recv函数很简短明了，得到dstva后先判断时候合法，之后复制发送的信息到curenv中，然后调度。
+
+\setmainfont{Consolas}
+\begin{lstlisting}[language={C},firstnumber=1,title=kern/syscall.c]
+static int
+sys_ipc_recv(void *dstva)
+{
+	// LAB 4: Your code here.
+	if (ROUNDDOWN (dstva, PGSIZE) != dstva 
+		&& dstva < (void*)UTOP)
+		return -E_INVAL;
+	curenv->env_status = ENV_NOT_RUNNABLE;
+	curenv->env_ipc_dstva = dstva;
+	curenv->env_ipc_from = 0;
+	curenv->env_ipc_recving = 1;
+	sched_yield();
+	return 0;
+}
+\end{lstlisting}
+\setmainfont[BoldFont=黑体]{宋体}
+
+这里的sys\_ipc\_try\_send的流程和上面的解释分析一样，函数前面的注释十分详细，让人感动。比较复杂的是错误处理。
+
+\setmainfont{Consolas}
+\begin{lstlisting}[language={C},firstnumber=1,title=kern/syscall.c]
+static int
+sys_ipc_try_send(envid_t envid, uint32_t value,
+				void *srcva, unsigned perm)
+{
+	// LAB 4: Your code here.
+	int r;
+	pte_t* pte;
+	struct Env* dstenv;
+	struct Page* p;
+	if ((r = envid2env(envid, &dstenv, 0)) < 0)
+		return -E_BAD_ENV;
+	if (!dstenv->env_ipc_recving || dstenv->env_ipc_from != 0)
+		return -E_IPC_NOT_RECV;
+	if (srcva < (void*)UTOP)
+	{
+		if(ROUNDUP(srcva, PGSIZE) != srcva)
+			return -E_INVAL;
+		if ((perm & ~PTE_SYSCALL) != 0)
+			return -E_INVAL;
+		if ((perm & 5) != 5)
+			return -E_INVAL;
+		dstenv->env_ipc_perm = 0;
+		p = page_lookup(curenv->env_pgdir, srcva, &pte);
+		if (p == NULL || ((perm & PTE_W) > 0 && 
+						  !(*pte & PTE_W) > 0))
+ 			return -E_INVAL;
+		if(page_insert(dstenv->env_pgdir, p, 
+					dstenv->env_ipc_dstva, perm)<0)
+			return -E_NO_MEM;
+	}
+	dstenv->env_ipc_recving = 0;
+	dstenv->env_ipc_from = curenv->env_id;
+	dstenv->env_ipc_value = value;
+	dstenv->env_ipc_perm = perm;
+	dstenv->env_tf.tf_regs.reg_eax = 0;
+	dstenv->env_status = ENV_RUNNABLE;
+	return 0;
+}
+\end{lstlisting}
+\setmainfont[BoldFont=黑体]{宋体}
+
+前面说到了，还有对应的包装函数，在lib/ipc.c中。分别是ipc\_recv和ipc\_send。完全按照前面的注释的内容添加即可，难度不大，再次注释感人。
+
+\setmainfont{Consolas}
+\begin{lstlisting}[language={C},firstnumber=1,title=lib/ipc.c]
+int32_t
+ipc_recv(envid_t *from_env_store, void *pg, int *perm_store)
+{
+	// LAB 4: Your code here.
+	if (!pg)
+		pg = (void*)UTOP;
+	int r = sys_ipc_recv(pg);
+	if (r >= 0) {
+		if(perm_store != NULL)
+			*perm_store = thisenv->env_ipc_perm;
+		if(from_env_store != NULL)
+			*from_env_store = thisenv->env_ipc_from;
+		return thisenv->env_ipc_value;
+	}
+	if(perm_store != NULL)
+		*perm_store = 0;
+	if(from_env_store != NULL)
+		*from_env_store = 0;
+	return r;
+}
+
+void
+ipc_send(envid_t to_env, uint32_t val, void *pg, int perm)
+{
+	// LAB 4: Your code here.
+	//panic("ipc_send not implemented");
+	if(!pg)
+		pg = (void*)UTOP; 
+	int r;
+	while((r = sys_ipc_try_send(to_env,val,pg,perm)) != 0)
+	{
+		if(r != -E_IPC_NOT_RECV )
+			panic ("[lib/ipc.c ipc_send]: sys try send failed : %e", r);
+	}
+	sys_yield();
+}
+\end{lstlisting}
+\setmainfont[BoldFont=黑体]{宋体}
+
+至此make grade可以跑75分，如果用ticket spinlock由于效率问题只能跑60分，最后的3个测试时间较多会跪掉。
+
+\section{Challenge}
+
+因为前面一部分调试的时间太久自我感觉理解的比较深入一些，又觉得第一个加小锁太麻烦而且调试反人类，而优先级调度感觉实现起来容易点，因此实现了优先级调度的Challenge。而且windows的任务管理器中同样可以设置进程的优先级。
+
+很多地方env\_priority可以参考env\_status设置，因为都是用一个变量保存状态，传参的方式完全可以一样。
+
+这里步骤比较多，我首先在lib/env.h里面的struct增加了一个
+\setmainfont{Consolas}
+\begin{lstlisting}[language={C},firstnumber=1,title=lib/env.h]
+// LAB4 challenge
+uint32_t env_priority;
+\end{lstlisting}
+\setmainfont[BoldFont=黑体]{宋体}
+
+然后在inc/env.h里添加了优先级的常量
+
+\setmainfont{Consolas}
+\begin{lstlisting}[language={C},firstnumber=1,title=lib/env.h]
+// use for priority sched challenge
+#define PRIORITY_SUPER	0x3
+#define PRIORITY_HIGH	0x2
+#define PRIORITY_MIDDLE	0x1
+#define PRIORITY_LOW	0x0
+\end{lstlisting}
+\setmainfont[BoldFont=黑体]{宋体}
+
+然后在kern/env.c里的env\_alooc()函数在初始化env的时候添加了env\_priority = PRIORITY\_MIDDLE。
+
+在inc/lib.h里添加了函数的声明，在kern/syscall.c仿照sys\_env\_set\_status写了个函数，只是把status换成了priority。
+
+在inc/syscall.h中添加了中断号码SYS\_env\_set\_priority。
+
+在kern/syscall.c里面的syscall()中添加了路由。
+
+在lib/syscall.c中添加系统调用，同样是模仿status的系统调用。
+
+最后在kern/sched.c中进行了修改能够按优先级调度，添加了两个变量，分别保存当前搜索到的最大优先级和对应的env\_id，在扫完一遍之后选择优先级最大的env执行，假设最大的一样比如有2个SUPER级别的，按照我的流程会有限执行前面一个，因为我的判定是大于而不是大于等于，所以不会覆盖。
+
+另外我还在user文件夹下创建了对应的测试文件，并在kern/init.c中加入了这4个测试文件，在kern/Makefreg同样要添加这4个测试文件，开始的时候由于后面的反斜号忘记删除了导致莫名其妙的编译不通过，调试了一段时间才发现Orz。感觉这个Challenge难点不是调度而是要修改这么多文件注册测试和函数，最后我还在kern/init.c里BSP启动的时候创建了4个对应的不同优先级的ENV。
+
+
+助教老师如果想要跑我写的测试的话，需要把kern/init.c里BSP创建的4个ENV的注释去掉，把kern/sched.c对应的challenge的部分替换掉default部分，我都用注释引了起来，直接将default加上注释将challenge部分去掉注释，改完这2个部分再make qemu就能跑出下面的结果。
+
+\setmainfont{Consolas}
+\begin{lstlisting}[language={C},firstnumber=1,title=]
+[00001009] Super Priority Process is Running
+[00001009] Super Priority Process is Running
+[00001009] Super Priority Process is Running
+[00001009] exiting gracefully
+[00001009] free env 00001008
+[00001008] High Priority Process is Running
+[00001008] High Priority Process is Running
+[00001008] High Priority Process is Running
+[00001008] exiting gracefully
+[00001008] free env 00001009
+[0000100b] Middle Priority Process is Running
+[0000100b] Middle Priority Process is Running
+[0000100b] Low Priority Process is Running
+[0000100b] exiting gracefully
+[0000100b] free env 0000100a
+[0000100a] Low Priority Process is Running
+[0000100a] Low Priority Process is Running
+[0000100a] Low Priority Process is Running
+[0000100a] exiting gracefully
+[0000100a] free env 0000100b
+\end{lstlisting}
+\setmainfont[BoldFont=黑体]{宋体}
+
+不管跑多少次都是上面的结果，我再吧sched替换成原来的，无视priority的话，就是下面的结果，会出现乱序，不过很大几率还是根据我的EnV创建的顺序来的。
+
+\setmainfont{Consolas}
+\begin{lstlisting}[language={C},firstnumber=1,title=]
+[00001009] High Priority Process is Running
+[00001009] High Priority Process is Running
+[00001009] High Priority Process is Running
+[00001009] exiting gracefully
+[00001009] free env 00001009
+[00001008] Super Priority Process is Running
+[00001008] Super Priority Process is Running
+[00001008] Super Priority Process is Running
+[00001008] exiting gracefully
+[00001008] free env 00001008
+[0000100a] Middle Priority Process is Running
+[0000100a] Middle Priority Process is Running
+[0000100a] Middle Priority Process is Running
+[0000100a] exiting gracefully
+[0000100a] free env 0000100a
+[0000100b] Low Priority Process is Running
+[0000100b] Low Priority Process is Running
+[0000100b] Low Priority Process is Running
+[0000100b] exiting gracefully
+[0000100b] free env 0000100b
+\end{lstlisting}
+\setmainfont[BoldFont=黑体]{宋体}
+
+
+\section{总结}
+
+这个lab把我lab3的漏洞充分暴露无遗，尤其是partA和partB的sys\_page\_alloc的调用，还是sysenter的锅，我大部分时间花在了lab的前一半部分，反而后面的部分注释比较详细，在中断和调度写对的情况下按部就班的写难度比前面低。前面调试多核和中断太难了，原来CSE的lab调试一个多线程的状态机就已经够难了，这下配上中断，很多调试的cprintf是乱序的只能脑补，而且中断的各种调用不是很好直接调试。
+
+总的来说还是由于我对Lab3的中断有些地方理解的不深入导致这个lab的part A花了大量的时间调试。希望后面的Lab5和Lab6能和前面4个Lab的关系小一些。
+
+\end{document}
+

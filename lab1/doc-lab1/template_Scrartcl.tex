@@ -1,0 +1,720 @@
+\documentclass[a4paper, 11pt]{ctexart}
+
+%%%%%% 导入包 %%%%%%
+
+\usepackage{graphicx}
+\usepackage[unicode]{hyperref}
+\usepackage{xcolor}
+\usepackage{cite}
+\usepackage{indentfirst}
+\usepackage{listings}
+
+%%%%%% 设置字号 %%%%%%
+\newcommand{\chuhao}{\fontsize{42pt}{\baselineskip}\selectfont}
+\newcommand{\xiaochuhao}{\fontsize{36pt}{\baselineskip}\selectfont}
+\newcommand{\yihao}{\fontsize{28pt}{\baselineskip}\selectfont}
+\newcommand{\erhao}{\fontsize{21pt}{\baselineskip}\selectfont}
+\newcommand{\xiaoerhao}{\fontsize{18pt}{\baselineskip}\selectfont}
+\newcommand{\sanhao}{\fontsize{15.75pt}{\baselineskip}\selectfont}
+\newcommand{\sihao}{\fontsize{14pt}{\baselineskip}\selectfont}
+\newcommand{\xiaosihao}{\fontsize{12pt}{\baselineskip}\selectfont}
+\newcommand{\wuhao}{\fontsize{10.5pt}{\baselineskip}\selectfont}
+\newcommand{\xiaowuhao}{\fontsize{9pt}{\baselineskip}\selectfont}
+\newcommand{\liuhao}{\fontsize{7.875pt}{\baselineskip}\selectfont}
+\newcommand{\qihao}{\fontsize{5.25pt}{\baselineskip}\selectfont}
+
+%%%% 设置 section 属性 %%%%
+\makeatletter
+\renewcommand\section{\@startsection{section}{1}{\z@}%
+{-1.5ex \@plus -.5ex \@minus -.2ex}%
+{.5ex \@plus .1ex}%
+{\normalfont\sihao\CJKfamily{hei}}}
+\makeatother
+
+%%%% 设置 subsection 属性 %%%%
+\makeatletter
+\renewcommand\subsection{\@startsection{subsection}{1}{\z@}%
+{-1.25ex \@plus -.5ex \@minus -.2ex}%
+{.4ex \@plus .1ex}%
+{\normalfont\xiaosihao\CJKfamily{hei}}}
+\makeatother
+
+%%%% 设置 subsubsection 属性 %%%%
+\makeatletter
+\renewcommand\subsubsection{\@startsection{subsubsection}{1}{\z@}%
+{-1ex \@plus -.5ex \@minus -.2ex}%
+{.3ex \@plus .1ex}%
+{\normalfont\xiaosihao\CJKfamily{hei}}}
+\makeatother
+
+%%%% 段落首行缩进两个字 %%%%
+\makeatletter
+\let\@afterindentfalse\@afterindenttrue
+\@afterindenttrue
+\makeatother
+\setlength{\parindent}{2em}  %中文缩进两个汉字位
+
+
+%%%% 下面的命令重定义页面边距，使其符合中文刊物习惯 %%%%
+\addtolength{\topmargin}{-54pt}
+\setlength{\oddsidemargin}{0.63cm}  % 3.17cm - 1 inch
+\setlength{\evensidemargin}{\oddsidemargin}
+\setlength{\textwidth}{14.66cm}
+\setlength{\textheight}{24.00cm}    % 24.62
+
+%%%% 下面的命令设置行间距与段落间距 %%%%
+\linespread{1.4}
+% \setlength{\parskip}{1ex}
+\setlength{\parskip}{0.5\baselineskip}
+
+\lstset{
+	basicstyle=\small,
+	keywordstyle=\color{blue},
+	commentstyle=\color[RGB]{0,96,96},
+	numbers=left,
+	frame={trBL},
+	frameround={fttt}
+}
+
+
+%%%% 正文开始 %%%%
+\begin{document}
+
+%%%% 定理类环境的定义 %%%%
+\newtheorem{example}{例}             % 整体编号
+
+%%%% 重定义 %%%%
+\renewcommand{\contentsname}{目录}  % 将Contents改为目录
+\renewcommand{\abstractname}{摘要}  % 将Abstract改为摘要
+\renewcommand{\refname}{参考文献}   % 将References改为参考文献
+\renewcommand{\indexname}{索引}
+\renewcommand{\figurename}{图}
+\renewcommand{\tablename}{表}
+\renewcommand{\appendixname}{附录}
+
+
+%%%% 定义标题格式，包括title，author，affiliation，email等 %%%%
+\title{\xiaochuhao{JOS-Lab-1 实验报告}}
+\author{\sanhao{熊伟伦}\\\sanhao{5120379076}\\\sanhao{azardf4yy@gmail.com}}
+\date{\sanhao{2014年9月26日 - 10月6日}}
+
+
+
+
+
+%%%% 以下部分是正文 %%%%  
+\maketitle
+
+\tableofcontents
+\newpage
+
+\section{前言}
+这个lab包括文档我大概花了数十个小时（应该不超过30个小时）。
+
+最坑的地方还是版本问题，我在ubuntu研究qemu的版本花了好几个小时，后来用ubuntu的gcc 4.8本来能跑练习15的buffer overflow的代码放在给的虚拟机里不能正常退出，发现是在gcc 4.8里的优化比4.4更强，跳过overflow\_me()直接call了start\_overflow()，跳过了一层函数。ubuntu虽然能用老版本的gcc，但为了保险起见预防其他可能发生的问题，还是决定老老实实用给定的虚拟机跑，重新配置了vim，vmware-tools等工具。虽然开发环境的顺手很重要，但更重要的还是拿到分数。
+
+
+\section{环境配置}
+
+一开始的操作系统使用了Ubuntu 14.04 64位版本，QEMU使用了MIT 2009年在6.828课程网站发布的打过补丁的0.10.6版本，即ipads课程网站所提供的虚拟机中使用的QEMU，gcc版本为4.8.2，gdb版本为7.7。
+
+\color{red}
+做完之后放在给定的虚拟机里发现了问题，由于gcc版本不一致导致优化程度不一样，影响练习15。保险起见，遂重新使用给定的虚拟机进行lab。
+\color{black}
+
+该文档使用XeLaTex和CTex编写。
+\section{Lab1架构描述}
+详细的每一部分在后面的练习描述中，这里大致概括下。
+
+boot/文件夹为boot loader模块的源代码，conf/文件夹下为一些环境参数设置，inc/文件夹下包含了各个模块所需要的头文件，包括很多数据结构和宏，lib/文件夹下为一些辅助函数，主要和字符串输入输出有关，obj/下为生成的asm文件，kern/则为kernel模块的源代码。
+
+首先，开机后程序在0x000F0000到0x00100000的位置会载入BIOS，这一部分是主板通电后载入内存，是写死的。
+程序的初始eip为0xffff0，在这个位置的指令是jmp 0xFE05B，从这里开始会进行一系列的IO操作对各种硬件进行初始化，对这些IO口的分析在下面的练习中有写到。BIOS还会将boot从硬盘的第一个扇区载入到内存的0x7C00到0x7DFF中，使用的是直接映射的技术，拷贝不需要通过CPU就能直接在内存和硬盘间进行，boot/sign.pl会把boot.S，main.c编译而成的文件打包加上结尾符表示这512个byte是boot。
+BIOS最后的指令是跳转到0x7C00处，开始执行boot。
+
+boot首先执行boot.S部分的代码，先做一些初始化设定包括禁止中断，打开A20地址线等，然后设置开启32位保护模式的一些寄存器，载入对应的GDT。GDT在boot.S的末尾进行了描述，偏移为0，即虚拟地址就是物理地址，data和code段的区别在于限权上的区别，data段可写，code段可读可执行。GDT载入完毕后会跳转到32位指令的保护模式中，.code32指明了接下来的代码为32位编码。保护模式首先初始化各个寄存器，初始化完毕后跳转到main.c的代码中。
+
+main.c做的事首先是读取硬盘的第一个page（一个page为4096 byte），根据第一页中的ELF文件头的索引得到ELF各个部分的位置，获取内核的在硬盘中的全部位置，逐步将内核载入到内存中（这一循环读取载入的部分不详细说明，后面的练习中有分析），载入完毕后跳转到内核的entry入口标签。
+
+内核首先执行的是entry.S文件中的指令，entry.S首先将寻址模式从32位段模式进入32位段页模式，该模式的很多宏在inc/文件夹下定义，包括虚拟地址映射到物理地址，偏移量为0xF0000000。完成这些操作后，初始化栈空间，最后跳转到i386\_init函数中。
+
+i386\_init函数定义在kern/init.c文件中，这里做的事情就是整个程序表现在终端上给我们看到的形式，也就是整个系统最终停留的地方。大部分的练习的函数调用都在这里。先进行一系列的cprintf和test\_backtrace的调用测试练习完成的情况。cprintf主要测试格式化输出中的练习，包括8进制输出，空余格输出，计数等功能的测试。测试完格式化输出后，系统会调用test\_backtrace函数，这个函数调用了我们需要写的backtrace函数进行函数的递归回溯查看，通过栈的结构一层一层显示回最上层的函数，其中还需要根据ELF的符号表进行一些debug的信息显示。完成这些步骤后该函数会调用overflow\_me函数，我们填充这个函数覆盖掉它返回caller的eip跳转到do\_overflow完成buffer overflow的练习。
+
+最后完成这些指令后，调用monitor函数循环读取用户的指令，就像一个linux的terminal一样，monitor函数由monitor.c，monitor.h和其他头文件定义，我们还需要完成一个time指令，通过Intel x86架构的rdtsc指令计算完成一个terminal的操作所需要的CPU周期。至此，这个lab的流程大致走完。
+
+这就是执行make qemu的过程中会发生的一系列事情，也就是lab1的大致框架流程，详细的cprintf函数，monitor等函数的扩展就不在架构描述中说明了，在后面的练习的解题分析过程中会详细描述。
+
+
+\section{第一部分: PC Bootstrap}
+
+
+\fbox{\shortstack[l]{
+练习1： 回忆起了ICS中用过的汇编指令，了解了下80386的段寄存器的演变历史\\
+以及在80386中段寄存器的使用方式，实模式和保护模式的寻址方式的差异等。先\\
+略读了这一部分，再后面的过程中碰到问题需要详细了解汇编指令再回头看。
+}}
+
+整个Bootstrap过程大致是启动后加载BIOS，早期的BIOS写在主板的ROM中被加载到内存的0xf0000到0xfffff的部分。初始的段寄存器CS=0xf000，指令指针寄存器低16位IP=0xfff0，根据386的实模式寻址，最终地址为CS<<4+IP=0xffff0。所以从内存地址0xffff0开始执行第一条汇编指令，同样采用实模式的寻址方式ljmp到0xfe05b开始执行BIOS的一系列指令。
+
+\subsection{/boot/文件夹分析}
+看过/boot/文件夹下的文件后，得到结论：boot.S是首先执行的boot loader的指令，主要完成初始化切换到保护模式的一些指令，最终call bootmain进入main.c编译的boot loader。 main.c负责跳转到内核代码。而sign.pl文件的作用是将boot.S和main.c编译后的内容的空余部分填充空字符并且最结尾添加0x55aa表示这段512个byte的代码是boot loader。 
+
+\subsection{BIOS执行分析}
+以下代码为BIOS启动后单步调试接下来执行的一系列指令，之后很长一部分指令没有I$\backslash$O操作，故只截取该段进行分析。
+ \begin{lstlisting}[language={[x86masm]Assembler}] 
+ 0xffff0:	ljmp   $0xf000,$0xe05b
+ 0xfe05b:	xor    %ax,%ax
+ 0xfe05d:	out    %al,$0xd
+ 0xfe05f:	out    %al,$0xda
+ 0xfe061:	mov    $0xc0,%al
+ 0xfe063:	out    %al,$0xd6
+ 0xfe065:	mov    $0x0,%al
+ 0xfe067:	out    %al,$0xd4
+ 0xfe069:	mov    $0xf,%al
+ 0xfe06b:	out    %al,$0x70
+ 0xfe06d:	in     $0x71,%al
+ 0xfe06f:	mov    %al,%bl
+ 0xfe071:	mov    $0xf,%al
+ 0xfe073:	out    %al,$0x70
+ 0xfe075:	mov    $0x0,%al
+ 0xfe077:	out    %al,$0x71
+ \end{lstlisting}
+
+\fbox{\shortstack[l]{
+练习2： 首先吐槽下查看I$\backslash$O port的连接地址需要翻墙，万恶的GFW。\\
+汇编指令 out \%al, \$port 向\$port端口写入一个8位的数据，一系列操作首先输出\\
+输出\%al的值给0xd和0xdaIO口，分别与DMA进行通信并且获取DMA的控制\\
+权，随后向0xd6和0xd4IO口进行输出，可能是对DMA进行一些初始化设置，\\
+开启不经过CPU的直接存储器访问，可能会从网卡、声卡、显卡、硬盘等设备读入\\
+数据进入内存中，进行设备的初始化操作等等。之后还会对0x70和0x71口进行数\\
+据IO设置不可被中断，开启时钟操作。
+}}
+
+\section{第二部分: The Boot Loader}
+传统PC从Disk载入Boot Loader，对于Disk，BIOS将其第一个sector共512 byte（即boot.S，main.c以及sign.pl生成的512 byte的数据）载入进内存的0x7c00到0x7dff中，并且跳转到0x7c00开始执行载入的Boot Loader。
+
+当然，现代的BIOS也可以从CD-ROM以及USB启动，就如同我们装系统时进入的BIOS选择启动设备顺序一样，不同的设备的载入数据长度也不一样。
+\subsection{切换到保护模式}
+\begin{lstlisting}[language={[x86masm]Assembler}] 
+.globl start
+start:
+  .code16                     # Assemble for 16-bit mode
+  cli                         # Disable interrupts
+  cld                         # String operations increment
+
+  # Set up the important data segment registers (DS, ES, SS).
+  xorw    %ax,%ax             # Segment number zero
+  movw    %ax,%ds             # -> Data Segment
+  movw    %ax,%es             # -> Extra Segment
+  movw    %ax,%ss             # -> Stack Segment
+\end{lstlisting}
+
+上述汇编代码是进入Boot Loader首先执行的指令,cli和cld对CPU进行一些控制设置，然后将寄存器清零。
+
+\begin{lstlisting}[language={[x86masm]Assembler}] 
+# Enable A20:
+  #   For backwards compatibility with the earliest PCs, physical
+  #   address line 20 is tied low, so that addresses higher than
+  #   1MB wrap around to zero by default.  This code undoes this.
+seta20.1:
+  inb     $0x64,%al               # Wait for not busy
+  testb   $0x2,%al
+  jnz     seta20.1
+
+  movb    $0xd1,%al               # 0xd1 -> port 0x64
+  outb    %al,$0x64
+
+seta20.2:
+  inb     $0x64,%al               # Wait for not busy
+  testb   $0x2,%al
+  jnz     seta20.2
+
+  movb    $0xdf,%al               # 0xdf -> port 0x60
+  outb    %al,$0x60
+\end{lstlisting}
+
+这一部分内容经过我上网查看了解，大概是为了兼容8086/8088的寻址模式，需要打开A20地址线，才能访问高位内存，属于为了兼容而遗留的代码。由此联想到Intel现在的指令集依然兼容很多年前的，导致指令集非常庞大，电路设计需要额外的一部分兼容老版本的指令，导致设计越来越复杂。
+
+\color{red}练习3：\color{black}\\
+(1)
+\begin{lstlisting}[language={[x86masm]Assembler}] 
+  lgdt    gdtdesc
+  movl    %cr0, %eax
+  orl     $CR0_PE_ON, %eax
+  movl    %eax, %cr0
+  
+  # Jump to next instruction, but in 32-bit code segment.
+  # Switches processor into 32-bit mode.
+  ljmp    $PROT_MODE_CSEG, $protcseg
+
+  .code32                     # Assemble for 32-bit mode
+protcseg:
+\end{lstlisting}
+
+上述代码的第1到4行将cr0寄存器的最后一位设置为1开启了保护模式，并且跳转到32位模式的汇编代码中，正式从实模式进入保护模式。
+
+(2)
+短短的main.c生成的汇编真是很长。
+
+执行的最后一条语句为进入内核入口：
+\begin{lstlisting}[language={C}] 
+((void (*)(void)) (ELFHDR->e_entry))();
+\end{lstlisting}
+
+对应汇编为：
+\begin{lstlisting}[language={[x86masm]Assembler}] 
+7d61: ff 15 18 00 01 00		call	*0x10018
+\end{lstlisting}
+
+上一条call的是对应地址所保存的值，在gdb中输入\\
+\fbox{\shortstack[l]{
+(gdb) p/x(*0x10018)\\
+\$S1 = 0x10000c
+}}
+
+果然下一条指令，即kern的第一条指令为：
+\begin{lstlisting}[language={[x86masm]Assembler}] 
+0x10000c:	movw	$0x1234, 0x472
+\end{lstlisting}
+
+随后找到这条指令存在于/kern/entry.S中的第44行
+\begin{lstlisting}[language={[x86masm]Assembler}] 
+.global entry
+entry:
+	movw	$0x1234, 0x472		#warm boot
+\end{lstlisting}
+
+(3)
+参考下面的代码（来自main.c的bootmain函数中），Boot Loader首先读取disk的第一个page，得到ELF头，随后验证得到的数据是否是ELF头，然后读取第一个program头的地址和program的总数，通过readseg从第一个program开始循环读取所有的program到内存中，readseg会调用readsect并且根据读取的数据长度选择对应的sector进行读取。readsect函数十分底层，直接根据sector偏移调用IO口从disk读取数据。
+
+\begin{lstlisting}[language={C}] 
+// read 1st page off disk
+readseg((uint32_t) ELFHDR, SECTSIZE*8, 0);
+
+// is this a valid ELF?
+if (ELFHDR->e_magic != ELF_MAGIC)
+	goto bad;
+
+// load each program segment (ignores ph flags)
+ph = (struct Proghdr *) ((uint8_t *) ELFHDR + ELFHDR->e_phoff);
+eph = ph + ELFHDR->e_phnum;
+for (; ph < eph; ph++)
+	// p_pa is the load address of this segment (as well
+	// as the physical address)
+	readseg(ph->p_pa, ph->p_memsz, ph->p_offset);
+\end{lstlisting}
+
+\subsection{载入内核}
+\color{red}{练习4}：\color{black}K\&R的那本C Programming Language的影印版我大一下学期就买了，排版巨烂，还不如电子版。
+
+pointers.c大部分理解难度不大，有几个比较有意思的地方。
+\begin{lstlisting}[language={C}]
+3[c] = 302;
+\end{lstlisting}
+
+我第一次看见还可以这样写。
+\begin{lstlisting}[language={C}]
+c = (int *) ((char *) c + 1);
+*c = 500;
+\end{lstlisting}
+
+这两行代码是将c先视作char指针，因此加1只移动8位而不是32位，所以此时再视作int指针，c指向的int为a[1]的第9到第32位以及a[2]的低8位，修改c指向的值会同时覆盖a[1]跟a[2]。
+
+\color{red}{练习5}：\color{black}从之前得到，BIOS跳转到0x7c00开始执行Boot Loader，Boot Loader载入完内核后跳转到0x10000c开始执行内核指令，所以在这2个点设置断点。
+
+从下面的输出可以看出，在Boot Loader执行之前从0x100000开始的32个byte都是0，而Boot Loader执行完之后有数据了。答案很明显，因为0x100000属于内核代码，在Boot Loader之前还没有将内核代码载入到内存中，在Breakpoint2跳转到内核执行，此时内核代码已经载入，所以0x100000有数据。
+
+\begin{lstlisting}[numbers=none]
+Breakpoint 1, 0x00007c00 in ?? ()
+(gdb) x/8x 0x100000
+0x100000:  0x00000000	0x00000000	0x00000000	0x00000000
+0x100010:  0x00000000	0x00000000	0x00000000	0x00000000
+(gdb) b *0x10000c
+Breakpoint 2 at 0x10000c
+(gdb) c
+Continuing.
+The target architecture is assumed to be i386
+=> 0x10000c:	movw   $0x1234,0x472
+
+Breakpoint 2, 0x0010000c in ?? ()
+(gdb) x/8x 0x100000
+0x100000:  0x1badb002	0x00000000	0xe4524ffe	0x7205c766
+0x100010:  0x34000004	0x0000b812	0x220f0011	0xc0200fd8
+\end{lstlisting}
+
+\subsection{链接地址 vs 载入地址}
+\color{red}{练习6}：\color{black}根据练习上下的说明介绍，大致是说生成的Binary的地址和指令的关系如果和link阶段设置的全局变量值不一致，会导致一些依赖相对位置的指令出错。
+
+先不改变/boot/Makefrag，make之后查看/obj/boot/boot.asm，下面截取第一条指令和跳转到32位保护模式的指令：
+\begin{lstlisting}[language={[x86masm]Assembler},numbers=none] 
+start:
+  .code16
+  cli
+    7c00:	fa	cli
+\end{lstlisting}
+\begin{lstlisting}[language={[x86masm]Assembler},numbers=none]
+ljmp	$PROT_MODE_CSEG, $protcseg
+  7c2d:	  ea 32 7c 08 00 66 b8	ljmp	$0xb866,$0x87c32
+\end{lstlisting}
+
+然后，我将/boot/Makefrag中的0x7c00改为0x7c04，目的是使得BIOS执行完毕后跳转到0x7c04，make后查看/obj/boot/boot.asm，同样的两条指令：
+\begin{lstlisting}[language={[x86masm]Assembler},numbers=none] 
+start:
+  .code16
+  cli
+    7c04:	fa	cli
+\end{lstlisting}
+\begin{lstlisting}[language={[x86masm]Assembler},numbers=none]
+ljmp	$PROT_MODE_CSEG, $protcseg
+  7c31:	  ea 36 7c 08 00 66 b8	ljmp	$0xb866,$0x87c36
+\end{lstlisting}
+
+可知该文件根据link生成，地址是相对生成的地址，但是break *0x7c00后发现单步调试的指令依然符合原来的，说明生成的Binary文件不变，但当执行到ljmp跳转保护模式时,如下：
+\begin{lstlisting}[language={[x86masm]Assembler}, numbers=none]
+[   0:7c2d] => 0x7c2d:	ljmp   $0x8,$0x7c36
+\end{lstlisting}
+
+可知与相对地址无关的Binary在修改link的参数后不变，但是地址相关的操作例如ljmp则会受到影响，因此jmp之后指令会乱掉，随后继续si竟然进入了0xfe05b，与预期的比肯定不对了。值得一提的是，前面的seta20段代码也有jmp，但是由于条件跳转没有执行，所以指令没有乱掉。
+
+\section{第三部分: The Kernel}
+\subsection{使用分段操作位置相关}
+根据提示，我用gdb执行到kern的第一步指令地址为0x10000c（load address)，而/obj/kern/kernal.asm(link address)对应的指令地址为0xf010000c，这也许就是指导中说的不一致。根据指导，0xf010000c为虚拟地址，对应的物理地址为0x0010000c。此时kern还没有切换到虚拟地址。
+
+\color{red}{练习7}：\color{black}
+继续上面所说，进入kern后继续单步调试，可以看见在0x0010002d执行完后新的虚拟物理地址对应起效了，下一个指令的地址在0xf010002f。
+\begin{lstlisting}[numbers=none]
+=> 0x10000c:	movw   $0x1234,0x472
+0x0010000c in ?? ()
+(gdb) p/x(*0x10018)
+$1 = 0x10000c
+(gdb) si
+=> 0x100015:	mov    $0x110000,%eax
+0x00100015 in ?? ()
+(gdb) si
+=> 0x10001a:	mov    %eax,%cr3
+0x0010001a in ?? ()
+(gdb) 
+=> 0x10001d:	mov    %cr0,%eax
+0x0010001d in ?? ()
+(gdb) 
+=> 0x100020:	or     $0x80010001,%eax
+0x00100020 in ?? ()
+(gdb) 
+=> 0x100025:	mov    %eax,%cr0
+0x00100025 in ?? ()
+(gdb) 
+=> 0x100028:	mov    $0xf010002f,%eax
+0x00100028 in ?? ()
+(gdb) 
+=> 0x10002d:	jmp    *%eax
+0x0010002d in ?? ()
+(gdb) 
+=> 0xf010002f <relocated>:	mov    $0x0,%ebp
+relocated () at kern/entry.S:73
+73		movl	$0x0,%ebp		# nuke frame pointer
+\end{lstlisting}
+
+查看对应的/kern/entry.S，对应的是这么几句代码（我把注释去掉了）：
+\begin{lstlisting}[language={[x86masm]Assembler}]
+movw	$0x1234,0x472			# warm boot
+movl	$(RELOC(entry_pgdir)), %eax
+movl	%eax, %cr3
+movl	%cr0, %eax
+orl	$(CR0_PE|CR0_PG|CR0_WP), %eax
+movl	%eax, %cr0
+mov	$relocated, %eax
+jmp	*%eax
+
+relocated:
+movl	$0x0,%ebp			# nuke frame pointer
+\end{lstlisting}
+
+可见在上述代码的第2到6行（即/kern/entry.S中的56到61行），读取entry\_pddir更新GDT。
+
+总而言之经过这几行命令读取了新的GDT，追查entry\_pgdir，它又定义在/kern/entrypgdir.c中。
+\begin{lstlisting}[language={C}]
+__attribute__((__aligned__(PGSIZE)))
+pde_t entry_pgdir[NPDENTRIES] = {
+	// Map VA's [0, 4MB) to PA's [0, 4MB)
+	[0]
+		= ((uintptr_t)entry_pgtable - KERNBASE) + PTE_P,
+	// Map VA's [KERNBASE, KERNBASE+4MB) to PA's [0, 4MB)
+	[KERNBASE>>PDXSHIFT]
+	= ((uintptr_t)entry_pgtable - KERNBASE) + PTE_P + PTE_W
+};
+\end{lstlisting}
+
+可见新的GDT将输入的虚拟地址进行 -KERNBASE 运算，其中PTE\_P和PTE\_W定义在/inc/mmu.h中，是page操作的flag，不详细去查看。KERNBASE定义在/inc/memlayout.h中：
+\begin{lstlisting}[language={C},numbers=none]
+#define KERNBASE  0xF0000000
+\end{lstlisting}
+
+-KERNBASE操作就把最高的f去掉，因此得到的虚拟地址和物理地址的映射。
+
+为了验证玩坏虚拟地址映射后哪一步会出问题，我将/kern/entry.S的加载GDT的56到61行注释掉，如下所示，加载到jmp指令时根据link载入到\%eax的值为\$0xf010001c，跳转到relocated标签，但由于没有进行虚拟地址物理地址的映射，出现了：
+\begin{lstlisting}[language={[x86masm]Assembler},numbers=none]
+0xf010001c <relocated>:	(bad)
+\end{lstlisting}
+
+即下方完整一段gdb指令显示出的第17行。因此这条jmp指令是没有更新GDT后第一条出错的指令。
+
+\begin{lstlisting}[language={[x86masm]Assembler}]
+=> 0x7d61:	call   *0x10018
+
+Breakpoint 1, 0x00007d61 in ?? ()
+(gdb) si
+=> 0x10000c:	movw   $0x1234,0x472
+0x0010000c in ?? ()
+(gdb) 
+=> 0x100015:	mov    $0xf010001c,%eax
+0x00100015 in ?? ()
+(gdb) 
+=> 0x10001a:	jmp    *%eax
+0x0010001a in ?? ()
+(gdb) p/x($eax)
+$1 = 0xf010001c
+(gdb) si
+=> 0xf010001c <relocated>:	(bad)  
+relocated () at kern/entry.S:73
+73		movl	$0x0,%ebp		# nuke frame pointer
+(gdb)
+\end{lstlisting}
+
+\subsection{格式化打印到控制台}
+\color{red}{练习8}：\color{black}首先实现八进制输出，可以看到正常的输出会出现这么一段。
+\begin{lstlisting}[numbers=none]
+6828 decimal is XXX octal!
+\end{lstlisting}
+
+追踪程序运行，大致从kernel的entry进入i386\_init，递归地调用了cprintf,vcprintf，vprintfmt，putch，ccutchar，cons\_putchar，serial\_putc，lpt\_putc，cga\_putc，再在最后3个函数中调用IO口，最终显示在屏幕上。
+
+修改输出为8进制，找到对应的代码在/lib/printfmt.c的vprintfmt的case'o'，只需要模仿10进制和16进制，将代码修改为：
+\begin{lstlisting}[language={C}]
+case 'o':
+	// Replace this with your code.
+	// display a number in octal form and the form should begin with '0'
+	
+	/* origin code
+	putch('X', putdat);
+	putch('X', putdat);
+	putch('X', putdat);
+	break;
+	*/
+	
+	// solution for exercise-8
+	putch('0', putdat);
+	num = getuint(&ap, lflag);
+	base = 8;
+	goto number;
+\end{lstlisting}
+
+屏幕输出：
+\begin{lstlisting}[numbers=none]
+6828 decimal is 015254 octal!
+\end{lstlisting}
+
+(1)根据前面的分析我们知道，/lib/printfmt.c和/kern/console.c的交互是printfmt.c调用console.c的cputchar函数。属于从高层调用底端显示等层。
+\begin{lstlisting}[language={C}]
+static void
+putch(int ch, int *cnt)
+{
+	cputchar(ch);
+    (*cnt)++;
+}
+\end{lstlisting}
+
+\begin{lstlisting}[language={C}]
+void
+cputchar(int c)
+{
+	cons_putc(c);
+}
+\end{lstlisting}
+
+(2)
+\begin{lstlisting}[language={C}]
+if (crt_pos >= CRT_SIZE) {
+    int i;
+    memcpy(crt_buf, crt_buf + CRT_COLS,
+           (CRT_SIZE - CRT_COLS) * sizeof(uint16_t));
+    for (i = CRT_SIZE - CRT_COLS; i < CRT_SIZE; i++)
+        crt_buf[i] = 0x0700 | ' ';
+    crt_pos -= CRT_COLS;}
+\end{lstlisting}
+
+可以看见上面的代码后面就是调用IO口的代码，函数名叫cga\_putc，可推出是直接调用显卡等IO设备进行字符串输出的代码。根据代码推测，大概用于检测屏幕一行是否输出满了，如果满了就出现一个空行，当前位置移动到空行行首。
+
+(3)
+这个练习好麻烦，我已经要抓狂了。冷静了一下，我在/kern/init.c增加了如下的第2,3行代码：
+\begin{lstlisting}[language={C}]
+cprintf("6828 decimal is %o octal!%n\n%n", 6828, &chnum1, &chnum2);
+int x = 1, y = 3, z = 4;
+cprintf("x %d, y %x, z %d\n", x, y, z);
+\end{lstlisting}
+
+make后找到对应的/obj/kern/kernel.asm中的代码：
+\begin{lstlisting}[language={[x86masm]Assembler}]
+	int x = 1, y = 3, z = 4;
+	cprintf("x %d, y %x, z %d\n", x, y, z);
+f0100131:	c7 44 24 0c 04 00 00 	movl   $0x4,0xc(%esp)
+f0100138:	00 
+f0100139:	c7 44 24 08 03 00 00 	movl   $0x3,0x8(%esp)
+f0100140:	00 
+f0100141:	c7 44 24 04 01 00 00 	movl   $0x1,0x4(%esp)
+f0100148:	00 
+f0100149:	c7 04 24 37 1b 10 f0 	movl   $0xf0101b37,(%esp)
+f0100150:	e8 1c 09 00 00       	call   f0100a71 <cprintf>
+\end{lstlisting}
+
+在f0100150设了个断点开始逐步调试，开始回答问题：
+
+根据/kern/printf.c，结合平时写代码的经验，很显然fmt指向传入的字符串，ap指向传入的额外的参数。
+
+进入cprintf函数，我单步调试了好久，打印寄存器里的值得到ap的值和fmt的值，验证了上面的说法，call vcprintf之前先将参数压栈再call，然后我还要进入/lib/printfmt.c的vprintf函数查看调用，这个函数就是开始修改8进制输出的那个函数，巨长，而且生成的汇编简直长的不能忍。看了va\_arg函数的参数和实现，这个函数就是把一个参数的指针算上第二个参数类型将指针往后移动，即读取下一个cprintf的额外参数。这题长哭了。
+
+然后我把自己增加的代码删掉了。
+
+(4)
+我又在老地方改了代码，如下第2,3行：
+\begin{lstlisting}[language={C}]
+cprintf("6828 decimal is %o octal!%n\n%n", 6828, &chnum1, &chnum2);
+unsigned int i = 0x00646c72;
+cprintf("H%x Wo%s", 57616, &i);
+\end{lstlisting}
+
+输出（我把后面的pading去掉了，因为没有换行，另外110是数字不是字母）：
+\begin{lstlisting}[numbers=none]
+He110 World
+\end{lstlisting}
+
+接下来进行分析，十进制的57616就是0xe110，0x00646c72用小端法表示就是0x72，0x6c，0x64，0x00，对应于ASCII就是"rld$\backslash$0"
+
+假设是大端法表示的话，i需要倒过来，即0x726c6400，而对于57616，既然是大端法写入的时候是大端法表示的数字，读出也就是大端法表示，存储方式改变，写入和读取不变，所以不改变数字依然输出e110。
+
+然后我又把修改的代码删掉重新make了。
+
+(5)
+这道题比较简单并且重复前面的了我就不写代码验证了，可以预测到，x正确输出3，而y会输出一个莫名其妙的东西，因为根据第3问的分析可知ap会继续向后移动到一块没有修改任何数值的未知用途的区域。
+
+(6)
+既然题目说GCC改变了参数压栈的顺序，那么对应的我们只要将cprintf中的额外参数的传入顺序逆过来就好了，前面分析过这个内容通过ap指针控制，可以将ap指针和va\_arg反过来操作。
+
+\color{red}{练习9}：\color{black}
+现在发现练习8,9都可以跑grade，练习8我看输出是对的但是跑不出来后来发现要把jos.out删掉再跑，坑了一段时间，因此接下来的练习都和grade有关，可以做完了就测，目前是20分。
+
+\begin{lstlisting}[language={C},numbers=none]
+vprintfmt(void (*putch)(int, void*),
+		void *putdat, const char *fmt, va_list ap)
+\end{lstlisting}
+
+再次梳理下vprintfmt参数的意义，putch是传入的底层调用的函数，putdat是传入的字符串读取到的位置，是一个在外部的函数申明的引用，fmt就是字符串的开头的指针，ap就是额外参数的对象。接下来开始实现功能。
+
+\begin{lstlisting}[language={C}]
+char* input_pos = putdat;
+char* extra_para = va_arg(ap, char*);
+if (extra_para == NULL) {
+	cprintf("%s", null_error);
+}
+else if ((*input_pos) & 0x80){		// if > 127
+	cprintf("%s", overflow_error);
+	*extra_para = 0xff;		// -1
+}
+else {
+	*extra_para = *input_pos;
+}
+\end{lstlisting}
+
+这一段代码也在我提交的源代码中，input\_pos读取putdat，extra\_para获取需要写入的值的指针，然后判断是否是空指针，是否大于sign char的最大值127，由于C语言不好在if中做强制转换，sign char与int做大小比较有点怪怪的，而且范围是不允许在-1到-128之间，所以用一个优雅的位运算就能解决这个判断问题，我看了grade脚本在overflow的情况下返回-1给参数，所以将0xff给sign char，最终没有问题的话就把input\_pos指向的值传给参数就好了。目前得分30分。
+
+\color{red}{练习10}：\color{black}
+
+\begin{lstlisting}[language={C}]
+static int padding_space = 0;
+static int padding_max_width = 0;
+static int one_number_flag = 0;
+static void
+printnum(void (*putch)(int, void*), void *putdat,
+	unsigned long long num, unsigned base, int width, int padc)
+{
+    if (width > padding_max_width)
+        padding_max_width = width;
+    if (num >= base) {
+    	if (one_number_flag == 0)
+            one_number_flag = 2;
+        printnum(putch, putdat, num / base, base, width - 1, padc);
+    } else {
+        if (one_number_flag == 0)
+            one_number_flag = 1;
+        while (--width > 0)
+            padding_space++;
+    }
+    putch("0123456789abcdef"[num % base], putdat);
+    if (width == padding_max_width || one_number_flag == 1){
+        while(padding_space-- > 0) 
+            putch(' ', putdat);
+        padding_space = 0;
+        padding_max_width = 0;
+        one_number_flag = 0;
+    }
+}
+\end{lstlisting}
+
+上述代码在我提交的/lib/printfmt.c中可以找到，我去掉了注释。其中我额外声明了3个全局变量，padding\_space用于记录需要空的个数，padding\_max\_width作为一个比较的flag让我能比较方便的判断出什么时候输出最后一个字符，然后可以输出空格，用这个判定会遗漏不超过base的数，所以再用one\_number\_flag判断是否是一位的数进行修补。
+
+输出：
+\begin{lstlisting}[numbers=none]
+pading space in the right to number 22: 22      .
+\end{lstlisting}
+
+然后我还修改init.c并测试了几个不同情况都符合预期，目前得分40。
+
+\subsection{栈}
+\color{red}{练习11}：\color{black}
+
+\begin{lstlisting}[language={[x86masm]Assembler}]
+movl	$0x0,%ebp			# nuke frame pointer
+
+# Set the stack pointer
+movl	$(bootstacktop),%esp
+\end{lstlisting}
+
+以上这部分代码初始化了栈，它将0赋给ebp寄存器，将下面代码中标记的bootstack赋给esp寄存器，即地址最高的栈低。
+栈存储在ELF的.data段。
+\begin{lstlisting}[language={[x86masm]Assembler}]
+    .p2align    PGSHIFT		# force page alignment
+    .globl      bootstack
+bootstack:
+    .space      KSTKSIZE
+    .globl      bootstacktop   
+bootstacktop:
+\end{lstlisting}
+
+\color{red}{练习12}：\color{black}
+查看/obj/kern/kernel.asm的76行开始直到调用92行的递归call，一共压栈了4+4+20+4=32个byte。
+
+这个时候有人告诉我不用写练习的步骤，然后我仔细看了下课程网站的说明，确实不用写，接下来的几个练习我就简单的说明下我写的过程。
+
+\color{red}练习13：\color{black}主要规范下输出的格式，符合shell测试脚本。
+
+\color{red}练习14：\color{black}这个练习大部分时间在进行源代码和资料的阅读。查阅了一些ELF的资料，ELF文件中会有symbol table保留进行debug用，这大概就是debug和release编译的区别了。因此根据一步步提示，并且查看其他的源代码进行模仿，完成这个练习。函数主要的过程是先查找对应的文件名，然后查找对应的函数名，最后找到行号，一步一步来。使用提供的二分查找的函数十分方便就能完成练习。之后我查看发现eip永远是在这个函数调用指令的后一个指令，存储规则就是这样，影响不大。
+
+\color{red}练习15：\color{black}花费时间比较长，而且gcc4.8和4.4的优化程度不一样导致我后来在提供的虚拟机上重写了这个练习，不过方法差不多。大致是将stack\_overflow中保存的ret用的eip改到do\_overflow函数中，要注意的是需要跳过do\_overflow函数开头的栈整理的两行代码，然后do\_overflow函数ret直接就会到mon\_backtrace函数。
+
+相当于原本是start\_overflow应该ret到overflow\_me函数再ret到mon\_backtrace函数，通过注入将overflow\_me函数替换成了do\_overflow函数。
+
+比较蛋疼的一点是练习要求使用cprint和 \%n完成，因此我将原本可以直接传递的do\_overflow地址通过 \%n来完成，个人觉得这完全是一步没有意义的画蛇添足的要求。
+
+
+\color{red}练习16：\color{black}相对来说比前面几个跟栈有关的容易，查了查rdtsc的资料很快就完成了这个练习。主要在monitor.c中加了mon\_time函数，另外还要再monitor.h中对函数进行注册。
+
+另外我还对嵌套，多个参数进行了测试。发现嵌套和linux的几乎一模一样，time time kerninfo这种，每次time会将argc-=1，argv+=1，这样来去掉time指令递归地执行后面的。
+
+在我的虚拟机中，time time，time help这种都是6位数的样子，time kerninfo是7位数，time backtrace是8位数，完全符合规律。
+
+至此，所有练习完成。鼓掌撒花。
+
+\newpage
+
+
+
+\end{document}

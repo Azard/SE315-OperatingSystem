@@ -1,0 +1,13 @@
+\BOOKMARK [1][-]{section.1}{前言}{}% 1
+\BOOKMARK [1][-]{section.2}{概括}{}% 2
+\BOOKMARK [1][-]{section.3}{物理页管理}{}% 3
+\BOOKMARK [2][-]{subsection.3.1}{创建页表结构}{section.3}% 4
+\BOOKMARK [2][-]{subsection.3.2}{页表结构初始化}{section.3}% 5
+\BOOKMARK [2][-]{subsection.3.3}{单个页表分配和释放}{section.3}% 6
+\BOOKMARK [2][-]{subsection.3.4}{多个页表的分配，释放和重新分配}{section.3}% 7
+\BOOKMARK [1][-]{section.4}{虚拟内存}{}% 8
+\BOOKMARK [2][-]{subsection.4.1}{地址转换}{section.4}% 9
+\BOOKMARK [2][-]{subsection.4.2}{引用计数}{section.4}% 10
+\BOOKMARK [2][-]{subsection.4.3}{页表管理}{section.4}% 11
+\BOOKMARK [1][-]{section.5}{内核地址空间}{}% 12
+\BOOKMARK [1][-]{section.6}{总结}{}% 13

@@ -1,0 +1,20 @@
+answers-lab4
+Xiong Weilun, 5120379076
+There is answers for questions in lab4, more details please reference to lab4.pdf in upload package.
+
+Question 1.
+=====================================
+This Macro named MPBOOTPHYS, as its name, it transform MP_BOOT linear address to physical address. Because in this AP core, it is run in real mode but after BSP enter kernel, so it need to use physical address.
+But it is different to boot.S because in boot.S, before it enter kernel, it can use linear address as physical address directly, so needn't reduce KERNBASE.
+=====================================
+
+Question 2.
+=====================================
+Obviously CAN-NOT.
+Because when interrupt, a CPU use stack before go into trap() to lock kernel, so when multiple CPUs interrupt, it cause a race on shared stack, so their stack must be seperate.
+=====================================
+
+Question 3.
+=====================================
+Becuase in different User Environment, the only difference is their user space virtual address, but the kernel address is same, so when switch User Environment, we needn't to change kernel virtual address pointer.
+=====================================

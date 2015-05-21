@@ -1,0 +1,20 @@
+answers-lab5
+Xiong Weilun, 5120379076
+There is answers for questions in lab5, more details please reference to lab5.pdf in upload package.
+
+Question 1.
+=====================================
+One night, one whole day, and one afternoon between three days.
+=====================================
+
+Question 2.
+=====================================
+This file system lab is different from CSE's lab. In CSE's file system lab, main task is to build the system's structure, such as superblock.
+But in this lab, main task is write some code to complete some function call API, the view of this lab is "How to call and how to work", not "What's its structure", so this lab take less time than CSE's file system lab.
+I gain some key idea about how to build a file system.
+=====================================
+
+Challenge
+=====================================
+See "lab5.pdf" in root directory
+=====================================

@@ -1,0 +1,33 @@
+answers-lab3
+Xiong Weilun, 5120379076
+There is answers for questions in lab3, more details please reference to lab3.pdf in upload package.
+
+Question 1.
+=====================================
+Only one handler function can't determine what interrupt it handling, so it can't use different strategy to face different situation, can't determine it should continue or reboot, and will lose the meaning of interrupt. 
+=====================================
+
+Question 2.
+=====================================
+As grade-lab3.sh, when user process run
+asm volatie("int $14");
+OS should say "General Protection", because in kern/trap.c, we set privilege in SETGATE(idt[T_PGFLT]) is 0, means "kernel only", so when user call int14, kernel will throw a General Protection interrupt(int13).
+If we set it's privilege to 3, this will run and throw int14.
+But if we do that, user can say "page fault" to kernel at any time, but it's conflict with our aim, we think "page fault" should throw by kernel when search page table. And user process can do that, rogue program and virus will use this leak do more bad things.
+=====================================
+
+Question 3.
+=====================================
+Because the privilege of SETGATE, as QUestion-2 saying.
+At first, I get General Protection, after I change gate DEBUG and BRKPT's privilege to 3, I success to debug step by step.
+=====================================
+
+Question 4.
+=====================================
+I think the point is privilege, some can only be done by kernel, some can be done by user environment. For exaple user/softint, user send a int14 message, but it has not privilege, so kernel throw int13 message to show General Protection for user throw interrupt what it can't throw. 
+=====================================
+
+
+
+
+
